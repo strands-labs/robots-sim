@@ -1,0 +1,16 @@
+__pycache__
+outputs
+camera_samples
+rollouts
+exps
+*.bak
+*.pkl
+*.egg-info
+.venv
+build
+dist
+.strands_robots
+Isaac-GR00T/
+*.pptx
+scan-report.json
+.coverage
