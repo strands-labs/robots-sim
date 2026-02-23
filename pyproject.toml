@@ -48,7 +48,7 @@ dev = [
     "mypy",
 ]
 sim = [
-    "libero @ git+https://github.com/Lifelong-Robot-Learning/LIBERO.git",
+    "libero>=0.1.0",
     "robosuite>=1.4.0",
     "scipy>=1.9.0",
     "mujoco>=2.3.0",
@@ -62,7 +62,6 @@ Repository = "https://github.com/strands-labs/robots-sim.git"
 Issues = "https://github.com/strands-labs/robots-sim/issues"
 
 [tool.hatch.metadata]
-allow-direct-references = true
 
 [tool.hatch.version]
 source = "vcs"
