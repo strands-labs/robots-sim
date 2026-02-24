@@ -48,8 +48,8 @@ Users provide natural language instructions to a Strands Agent, which routes req
 ### Development Installation
 
 ```bash
-git clone https://gitlab.aws.dev/aws-wwso-prototyping/strands-robots-sim
-cd strands-robots-sim
+git clone https://github.com/strands-labs/robots-sim
+cd robots-sim
 conda env create -f environment.yml
 ```
 
@@ -706,8 +706,8 @@ Apache-2.0
 
 ## Links
 
-- **Documentation**: https://gitlab.aws.dev/aws-wwso-prototyping/strands-robots-sim
-- **Issues**: https://gitlab.aws.dev/aws-wwso-prototyping/strands-robots-sim/-/issues
+- **Documentation**: https://github.com/strands-labs/robots-sim
+- **Issues**: https://github.com/strands-labs/robots-sim/issues
 - **Strands SDK**: https://github.com/strands-agents/sdk-python
 - **Isaac-GR00T**: https://github.com/NVIDIA/Isaac-GR00T
 - **Libero**: https://github.com/Lifelong-Robot-Learning/LIBERO
