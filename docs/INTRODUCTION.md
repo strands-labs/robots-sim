@@ -357,7 +357,7 @@ If you use this framework in your research:
   title = {Strands Robots Sim: LLM-Controlled Robot Manipulation},
   author = {AWS WWSO Prototyping},
   year = {2025},
-  url = {https://gitlab.aws.dev/aws-wwso-prototyping/strands-robots-sim}
+  url = {https://github.com/strands-labs/robots-sim}
 }
 ```
 
