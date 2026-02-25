@@ -112,7 +112,7 @@ class LiberoEnvironment(SimulationEnvironment):
 
         except ImportError as e:
             logger.error(f"❌ Libero not installed: {e}")
-            logger.error("💡 Install with: pip install lerobot-libero")
+            logger.error("💡 Install simulation dependencies with: pip install strands-robots-sim[sim]")
             return False
         except Exception as e:
             logger.error(f"❌ Failed to initialize Libero: {e}")

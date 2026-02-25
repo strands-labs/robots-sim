@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --no-cache-dir hatch
+          pip install --no-cache-dir --upgrade pip "virtualenv<21" hatch
 
       - name: Run lint
         run: hatch run lint
