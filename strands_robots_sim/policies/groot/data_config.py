@@ -1,10 +1,49 @@
 #!/usr/bin/env python3
 """GR00T data configurations — robot embodiment key mappings.
 
+Each config maps modality names (video, state, action, language) to the
+keys expected by the GR00T inference server.
+
+Configs may optionally include a ``protocol`` field that selects the
+transport format.  Two protocols exist:
+
+* ``"sim_wrapper"`` — For ``Gr00tSimPolicyWrapper`` servers (Isaac-GR00T
+  N1.6+).  5-D video, float32 state, wrapped request envelope.
+* ``"direct"`` — For bare-policy servers (Isaac-GR00T N1.5 and earlier).
+  4-D video, float64 state, flat request.
+
+When ``protocol`` is absent the client auto-detects at runtime.
+
 SPDX-License-Identifier: Apache-2.0
 """
 
-# Each config: (video_keys, state_keys, action_keys, language_keys)
+import numpy as np
+
+# ---------------------------------------------------------------------------
+# Protocol descriptors — HOW observations are formatted and sent.
+# ---------------------------------------------------------------------------
+
+PROTOCOLS = {
+    "sim_wrapper": {
+        "video_ndim": 5,  # (B, T, H, W, C)
+        "state_dtype": np.float32,
+        "request_wrap": "observation",
+        "response_batch_dim": True,
+        "language_type": "tuple",
+    },
+    "direct": {
+        "video_ndim": 4,  # (B, H, W, C)
+        "state_dtype": np.float64,
+        "request_wrap": None,
+        "response_batch_dim": False,
+        "language_type": "list",
+    },
+}
+
+# ---------------------------------------------------------------------------
+# Embodiment data configs — WHAT keys to use (unchanged from original).
+# ---------------------------------------------------------------------------
+
 DATA_CONFIGS = {
     "fourier_gr1_arms_only": {
         "video": ["video.ego_view"],
@@ -49,6 +88,7 @@ DATA_CONFIGS = {
             "action.robot0_gripper_qpos",
         ],
         "language": ["annotation.human.action.task_description"],
+        "protocol": "sim_wrapper",
     },
     "libero_spatial": {
         "video": ["video.image", "video.wrist_image"],
@@ -61,6 +101,7 @@ DATA_CONFIGS = {
             "action.robot0_gripper_qpos",
         ],
         "language": ["annotation.human.action.task_description"],
+        "protocol": "sim_wrapper",
     },
     "libero_goal": {
         "video": ["video.image", "video.wrist_image"],
@@ -73,6 +114,7 @@ DATA_CONFIGS = {
             "action.robot0_gripper_qpos",
         ],
         "language": ["annotation.human.action.task_description"],
+        "protocol": "sim_wrapper",
     },
     "libero_meanstd": {
         "video": ["video.image", "video.wrist_image"],
@@ -89,15 +131,46 @@ DATA_CONFIGS = {
 }
 
 
-def load_data_config(name):
-    """Load a data config by name. Returns dict with video/state/action/language keys."""
+def get_protocol(name):
+    """Return a copy of the named protocol descriptor, or empty dict."""
+    return dict(PROTOCOLS.get(name, {}))
+
+
+def load_data_config(name, protocol=None):
+    """Load a data config by name.
+
+    Args:
+        name: Config name (e.g. "libero") or dict.
+            Supports "name:protocol" syntax (e.g. "libero:sim_wrapper").
+        protocol: Override the protocol field in the returned config.
+
+    Returns:
+        Dict with video / state / action / language keys and optional
+        ``protocol`` field.
+    """
     if isinstance(name, dict):
         return name
+
+    # Support "name:protocol" shorthand
+    if isinstance(name, str) and ":" in name:
+        name, protocol = name.split(":", 1)
+
+    config = _lookup(name)
+    if config is None:
+        raise ValueError(f"Unknown data_config '{name}'. Available: {list(DATA_CONFIGS.keys())}")
+
+    if protocol:
+        config["protocol"] = protocol
+
+    return config
+
+
+def _lookup(name):
+    """Exact or fuzzy config lookup.  Returns a shallow copy."""
     if name in DATA_CONFIGS:
-        return DATA_CONFIGS[name]
-    # Fuzzy match: any name containing "libero" falls back to the base libero config
+        return dict(DATA_CONFIGS[name])
     if isinstance(name, str) and "libero" in name.lower():
         if "goal" in name.lower() or "meanstd" in name.lower():
-            return DATA_CONFIGS["libero_meanstd"]
-        return DATA_CONFIGS["libero"]
-    raise ValueError(f"Unknown data_config '{name}'. Available: {list(DATA_CONFIGS.keys())}")
+            return dict(DATA_CONFIGS["libero_meanstd"])
+        return dict(DATA_CONFIGS["libero"])
+    return None
