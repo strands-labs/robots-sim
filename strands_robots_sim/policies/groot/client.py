@@ -58,11 +58,15 @@ class GR00TClient:
         elif self.protocol == "direct":
             return self._request_flat(observations)
         else:
-            # Auto-detect: try sim_wrapper first, fall back to direct
+            # Auto-detect: try sim_wrapper first; if the response lacks
+            # action keys, retry with the direct protocol.
             try:
-                return self._request({"observation": observations})
-            except RuntimeError:
-                return self._request_flat(observations)
+                result = self._request({"observation": observations})
+                if self._has_action_keys(result):
+                    return result
+            except Exception:
+                pass
+            return self._request_flat(observations)
 
     def _request(self, data):
         """Send wrapped request and parse response."""
@@ -84,6 +88,16 @@ class GR00TClient:
         if isinstance(response, dict) and "error" in response:
             raise RuntimeError(f"GR00T server error: {response['error']}")
         return response
+
+    @staticmethod
+    def _has_action_keys(result):
+        """Check whether the response looks like a valid action chunk."""
+        if not isinstance(result, dict) or not result:
+            return False
+        return any(
+            k.startswith("action.") or k in ("action",)
+            for k in result
+        )
 
     def ping(self):
         """Check server connectivity."""

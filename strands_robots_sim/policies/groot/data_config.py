@@ -166,7 +166,19 @@ def load_data_config(name, protocol=None):
 
 
 def _lookup(name):
-    """Exact or fuzzy config lookup.  Returns a shallow copy."""
+    """Exact or fuzzy config lookup.  Returns a shallow copy.
+
+    Resolution order:
+    1. Exact match against DATA_CONFIGS keys.
+    2. Fuzzy: any name containing "libero" falls back to the base
+       ``libero`` config (or ``libero_meanstd`` if "goal"/"meanstd"
+       appears in the name).  This lets callers pass suite names like
+       ``"libero_object"`` without registering every variant.
+    3. None if nothing matches — caller should raise ValueError.
+
+    Note: the ``protocol`` field in the returned config can still be
+    overridden by ``load_data_config(..., protocol=...)`` after lookup.
+    """
     if name in DATA_CONFIGS:
         return dict(DATA_CONFIGS[name])
     if isinstance(name, str) and "libero" in name.lower():

@@ -109,6 +109,7 @@ class Gr00tPolicy(Policy):
     @staticmethod
     def _add_video_dims(image: np.ndarray, ndim: int) -> np.ndarray:
         image = image.astype(np.uint8)
+        assert image.ndim == 3, f"Expected (H, W, C) image, got ndim={image.ndim} shape={image.shape}"
         if ndim == 5:
             return image.reshape(1, 1, *image.shape)  # (B, T, H, W, C)
         return np.expand_dims(image, 0)  # (B, H, W, C)
@@ -121,10 +122,19 @@ class Gr00tPolicy(Policy):
     # ------------------------------------------------------------------
 
     def _map_libero_state(self, obs: dict, env_obs: dict, dtype, video_ndim: int):
-        """Decompose Libero eef_pos / eef_quat into state.x, state.y … state.gripper."""
-        eef_pos = env_obs.get("robot0_eef_pos", np.zeros(3))
-        eef_quat = env_obs.get("robot0_eef_quat", np.array([0, 0, 0, 1.0]))
+        """Decompose Libero eef_pos / eef_quat into state.x, state.y … state.gripper.
+
+        If eef_pos/eef_quat are missing, zero-valued state entries are still
+        added so the server always receives a complete observation.
+        """
+        eef_pos = env_obs.get("robot0_eef_pos")
+        eef_quat = env_obs.get("robot0_eef_quat")
         gripper = env_obs.get("robot0_gripper_qpos", np.array([0.0, 0.0]))
+
+        if eef_pos is None or eef_quat is None:
+            logger.warning("robot0_eef_pos/eef_quat missing from observation — using zeros")
+            eef_pos = eef_pos if eef_pos is not None else np.zeros(3)
+            eef_quat = eef_quat if eef_quat is not None else np.array([0, 0, 0, 1.0])
         rpy = self._quat2axisangle(eef_quat)
 
         scalars = {"x": eef_pos[0], "y": eef_pos[1], "z": eef_pos[2], "roll": rpy[0], "pitch": rpy[1], "yaw": rpy[2]}
@@ -197,6 +207,7 @@ class Gr00tPolicy(Policy):
         return cams[0] if cams else None
 
     def _resize_image(self, image: np.ndarray, target: tuple = (256, 256)) -> np.ndarray:
+        """Resize image to target (H, W).  Always returns a 3-D (H, W, C) array."""
         try:
             if image.ndim == 4:
                 image = image[0]
@@ -223,6 +234,11 @@ class Gr00tPolicy(Policy):
             hi, wi = np.linspace(0, h - 1, th).astype(int), np.linspace(0, w - 1, tw).astype(int)
             return image[np.ix_(hi, wi, range(image.shape[2]))] if image.ndim == 3 else image[np.ix_(hi, wi)]
         except Exception:
+            # Ensure we always return 3-D so _add_video_dims doesn't fail
+            if image.ndim == 2:
+                return image[..., np.newaxis]
+            if image.ndim == 4:
+                return image[0]
             return image
 
     # ------------------------------------------------------------------
@@ -283,11 +299,33 @@ class Gr00tPolicy(Policy):
         action[-1] = np.sign(1 - 2 * action[-1])  # gripper [0,1] → {+1,−1}
         return action
 
+    # Typical dimensionality for known action key fragments.
+    _ACTION_DIM_PATTERNS = {
+        "joint_pos": 7, "joint_vel": 7,
+        "eef_pos": 3, "eef_quat": 4,
+        "eef_rot": 3,
+        "gripper_qpos": 1, "gripper_close": 1, "gripper": 1,
+        "left_arm": 7, "right_arm": 7,
+        "left_hand": 1, "right_hand": 1,
+        "single_arm": 5,
+    }
+
+    @classmethod
+    def _infer_action_dim(cls, key: str) -> int:
+        """Infer action dimensionality from a key name like 'action.robot0_joint_pos'."""
+        name = key.split(".")[-1] if "." in key else key
+        # Try longest suffix match first (e.g. "gripper_qpos" before "gripper")
+        for pattern in sorted(cls._ACTION_DIM_PATTERNS, key=len, reverse=True):
+            if name.endswith(pattern):
+                return cls._ACTION_DIM_PATTERNS[pattern]
+        return 1
+
     def _create_fallback_actions(self) -> dict:
         h = 16 if self.protocol_name == "sim_wrapper" else 8
         chunk = {}
         for key in self.action_keys:
-            chunk[key] = np.zeros((h, 1), dtype=np.float32)
+            dim = self._infer_action_dim(key)
+            chunk[key] = np.zeros((h, dim), dtype=np.float32)
         return chunk
 
     # ------------------------------------------------------------------

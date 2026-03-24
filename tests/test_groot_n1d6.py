@@ -1,8 +1,11 @@
 """Tests for GR00T multi-protocol support (sim_wrapper + direct).
 
 Verifies that observation formatting adapts to the active protocol
-while data configs remain unchanged. All tests are mock-only.
+while data configs remain unchanged. All tests are mock-only —
+GR00TClient is patched so no real ZMQ socket is created.
 """
+
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -10,6 +13,8 @@ import pytest
 from strands_robots_sim.policies.groot.data_config import PROTOCOLS, load_data_config
 
 pytestmark = pytest.mark.mock
+
+_CLIENT_PATH = "strands_robots_sim.policies.groot.GR00TClient"
 
 
 # -- Fixtures ----------------------------------------------------------------
@@ -36,7 +41,8 @@ def state_keys():
 def _make_policy(protocol, state_keys):
     from strands_robots_sim.policies.groot import Gr00tPolicy
 
-    p = Gr00tPolicy(data_config="libero", host="localhost", port=9999, protocol=protocol)
+    with patch(_CLIENT_PATH):
+        p = Gr00tPolicy(data_config="libero", host="localhost", port=9999, protocol=protocol)
     p.set_robot_state_keys(state_keys)
     return p
 
@@ -163,6 +169,53 @@ class TestActionConversion:
         chunk = _make_policy("sim_wrapper", state_keys)._create_fallback_actions()
         assert all(isinstance(v, np.ndarray) for v in chunk.values())
 
+    def test_fallback_per_key_dims(self, state_keys):
+        """Fallback actions should have correct per-key dimensionality."""
+        chunk = _make_policy("sim_wrapper", state_keys)._create_fallback_actions()
+        assert chunk["action.robot0_joint_pos"].shape == (16, 7)
+        assert chunk["action.robot0_eef_pos"].shape == (16, 3)
+        assert chunk["action.robot0_eef_quat"].shape == (16, 4)
+        assert chunk["action.robot0_gripper_qpos"].shape == (16, 1)
+
+    def test_fallback_direct_horizon(self, state_keys):
+        """Direct protocol fallback should use horizon=8."""
+        chunk = _make_policy("direct", state_keys)._create_fallback_actions()
+        assert chunk["action.robot0_joint_pos"].shape[0] == 8
+
+
+# -- Defensive edge cases ----------------------------------------------------
+
+
+class TestDefensiveEdgeCases:
+
+    def test_missing_eef_pos_uses_zeros(self, state_keys):
+        """State should still be populated when eef_pos is missing."""
+        obs_no_eef = {
+            "robot0_joint_pos": np.zeros(7),
+            "robot0_joint_vel": np.zeros(7),
+            "robot0_gripper_qpos": np.array([0.02, -0.02]),
+            "agentview_image": np.random.randint(0, 255, (256, 256, 3), dtype=np.uint8),
+            "robot0_eye_in_hand_image": np.random.randint(0, 255, (256, 256, 3), dtype=np.uint8),
+        }
+        p = _make_policy("sim_wrapper", state_keys)
+        built = p._build_observation(obs_no_eef, "test")
+        assert "state.x" in built
+        assert float(built["state.x"].flat[0]) == 0.0
+
+    def test_video_ndim_assertion(self, state_keys):
+        """_add_video_dims should reject non-3D input."""
+        from strands_robots_sim.policies.groot import Gr00tPolicy
+
+        with pytest.raises(AssertionError, match="Expected.*H, W, C"):
+            Gr00tPolicy._add_video_dims(np.zeros((256, 256), dtype=np.uint8), ndim=5)
+
+    def test_video_ndim_4d_rejected(self, state_keys):
+        """Already-batched 4D image should be rejected."""
+        from strands_robots_sim.policies.groot import Gr00tPolicy
+
+        with pytest.raises(AssertionError, match="Expected.*H, W, C"):
+            Gr00tPolicy._add_video_dims(np.zeros((1, 256, 256, 3), dtype=np.uint8), ndim=5)
+
 
 # -- Protocol selection -------------------------------------------------------
 
@@ -172,30 +225,35 @@ class TestProtocolSelection:
     def test_colon_sim_wrapper(self):
         from strands_robots_sim.policies.groot import Gr00tPolicy
 
-        assert Gr00tPolicy(data_config="libero:sim_wrapper", host="localhost", port=9999).protocol_name == "sim_wrapper"
+        with patch(_CLIENT_PATH):
+            assert Gr00tPolicy(data_config="libero:sim_wrapper", host="localhost", port=9999).protocol_name == "sim_wrapper"
 
     def test_colon_direct(self):
         from strands_robots_sim.policies.groot import Gr00tPolicy
 
-        assert Gr00tPolicy(data_config="libero:direct", host="localhost", port=9999).protocol_name == "direct"
+        with patch(_CLIENT_PATH):
+            assert Gr00tPolicy(data_config="libero:direct", host="localhost", port=9999).protocol_name == "direct"
 
     def test_legacy_n1d6(self):
         from strands_robots_sim.policies.groot import Gr00tPolicy
 
-        assert (
-            Gr00tPolicy(data_config="libero", host="localhost", port=9999, groot_version="n1d6").protocol_name
-            == "sim_wrapper"
-        )
+        with patch(_CLIENT_PATH):
+            assert (
+                Gr00tPolicy(data_config="libero", host="localhost", port=9999, groot_version="n1d6").protocol_name
+                == "sim_wrapper"
+            )
 
     def test_legacy_n1d5(self):
         from strands_robots_sim.policies.groot import Gr00tPolicy
 
-        assert (
-            Gr00tPolicy(data_config="libero", host="localhost", port=9999, groot_version="n1d5").protocol_name
-            == "direct"
-        )
+        with patch(_CLIENT_PATH):
+            assert (
+                Gr00tPolicy(data_config="libero", host="localhost", port=9999, groot_version="n1d5").protocol_name
+                == "direct"
+            )
 
     def test_default_from_config(self):
         from strands_robots_sim.policies.groot import Gr00tPolicy
 
-        assert Gr00tPolicy(data_config="libero", host="localhost", port=9999).protocol_name == "sim_wrapper"
+        with patch(_CLIENT_PATH):
+            assert Gr00tPolicy(data_config="libero", host="localhost", port=9999).protocol_name == "sim_wrapper"
