@@ -301,12 +301,18 @@ class Gr00tPolicy(Policy):
 
     # Typical dimensionality for known action key fragments.
     _ACTION_DIM_PATTERNS = {
-        "joint_pos": 7, "joint_vel": 7,
-        "eef_pos": 3, "eef_quat": 4,
+        "joint_pos": 7,
+        "joint_vel": 7,
+        "eef_pos": 3,
+        "eef_quat": 4,
         "eef_rot": 3,
-        "gripper_qpos": 1, "gripper_close": 1, "gripper": 1,
-        "left_arm": 7, "right_arm": 7,
-        "left_hand": 1, "right_hand": 1,
+        "gripper_qpos": 1,
+        "gripper_close": 1,
+        "gripper": 1,
+        "left_arm": 7,
+        "right_arm": 7,
+        "left_hand": 1,
+        "right_hand": 1,
         "single_arm": 5,
     }
 

@@ -226,7 +226,10 @@ class TestProtocolSelection:
         from strands_robots_sim.policies.groot import Gr00tPolicy
 
         with patch(_CLIENT_PATH):
-            assert Gr00tPolicy(data_config="libero:sim_wrapper", host="localhost", port=9999).protocol_name == "sim_wrapper"
+            assert (
+                Gr00tPolicy(data_config="libero:sim_wrapper", host="localhost", port=9999).protocol_name
+                == "sim_wrapper"
+            )
 
     def test_colon_direct(self):
         from strands_robots_sim.policies.groot import Gr00tPolicy

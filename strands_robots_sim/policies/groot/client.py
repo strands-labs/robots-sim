@@ -94,10 +94,7 @@ class GR00TClient:
         """Check whether the response looks like a valid action chunk."""
         if not isinstance(result, dict) or not result:
             return False
-        return any(
-            k.startswith("action.") or k in ("action",)
-            for k in result
-        )
+        return any(k.startswith("action.") or k in ("action",) for k in result)
 
     def ping(self):
         """Check server connectivity."""
