@@ -367,6 +367,12 @@ class SimEnv(AgentTool):
 
                 # Reset environment for new episode
                 observation = await self.sim_env.reset(task_name)
+
+                # Wait for physics to settle before running policy
+                # Reference: Isaac-GR00T/examples/Libero/eval/run_libero_eval.py num_steps_wait=10
+                for _ in range(10):
+                    observation, _, _, _ = await self.sim_env.step({"action": [0, 0, 0, 0, 0, 0, -1]})
+
                 episode_reward = 0.0
                 episode_steps = 0
                 episode_done = False  # Track episode termination

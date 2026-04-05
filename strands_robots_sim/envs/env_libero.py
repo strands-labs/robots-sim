@@ -198,7 +198,8 @@ class LiberoEnvironment(SimulationEnvironment):
                 init_states = self.task_suite_instance.get_task_init_states(task_id)
                 if init_states:
                     self.env.set_init_state(init_states[0])
-                    obs = self.env.reset()  # Reset again with initial state
+                    # NOTE: do NOT call reset() again after set_init_state — it re-terminates the
+                    # episode and causes "executing action in terminated episode" errors downstream.
             except Exception as init_error:
                 # Handle PyTorch loading issues with initial states
                 logger.warning(f"⚠️ Could not load initial states: {init_error}")
