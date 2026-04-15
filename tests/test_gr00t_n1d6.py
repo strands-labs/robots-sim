@@ -10,11 +10,11 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from strands_robots_sim.policies.groot.data_config import PROTOCOLS, load_data_config
+from strands_robots_sim.policies.gr00t.data_config import PROTOCOLS, load_data_config
 
 pytestmark = pytest.mark.mock
 
-_CLIENT_PATH = "strands_robots_sim.policies.groot.GR00TClient"
+_CLIENT_PATH = "strands_robots_sim.policies.gr00t.GR00TClient"
 
 
 # -- Fixtures ----------------------------------------------------------------
@@ -39,7 +39,7 @@ def state_keys():
 
 
 def _make_policy(protocol, state_keys):
-    from strands_robots_sim.policies.groot import Gr00tPolicy
+    from strands_robots_sim.policies.gr00t import Gr00tPolicy
 
     with patch(_CLIENT_PATH):
         p = Gr00tPolicy(data_config="libero", host="localhost", port=9999, protocol=protocol)
@@ -204,14 +204,14 @@ class TestDefensiveEdgeCases:
 
     def test_video_ndim_assertion(self, state_keys):
         """_add_video_dims should reject non-3D input."""
-        from strands_robots_sim.policies.groot import Gr00tPolicy
+        from strands_robots_sim.policies.gr00t import Gr00tPolicy
 
         with pytest.raises(AssertionError, match="Expected.*H, W, C"):
             Gr00tPolicy._add_video_dims(np.zeros((256, 256), dtype=np.uint8), ndim=5)
 
     def test_video_ndim_4d_rejected(self, state_keys):
         """Already-batched 4D image should be rejected."""
-        from strands_robots_sim.policies.groot import Gr00tPolicy
+        from strands_robots_sim.policies.gr00t import Gr00tPolicy
 
         with pytest.raises(AssertionError, match="Expected.*H, W, C"):
             Gr00tPolicy._add_video_dims(np.zeros((1, 256, 256, 3), dtype=np.uint8), ndim=5)
@@ -223,7 +223,7 @@ class TestDefensiveEdgeCases:
 class TestProtocolSelection:
 
     def test_colon_sim_wrapper(self):
-        from strands_robots_sim.policies.groot import Gr00tPolicy
+        from strands_robots_sim.policies.gr00t import Gr00tPolicy
 
         with patch(_CLIENT_PATH):
             assert (
@@ -232,31 +232,31 @@ class TestProtocolSelection:
             )
 
     def test_colon_direct(self):
-        from strands_robots_sim.policies.groot import Gr00tPolicy
+        from strands_robots_sim.policies.gr00t import Gr00tPolicy
 
         with patch(_CLIENT_PATH):
             assert Gr00tPolicy(data_config="libero:direct", host="localhost", port=9999).protocol_name == "direct"
 
     def test_legacy_n1d6(self):
-        from strands_robots_sim.policies.groot import Gr00tPolicy
+        from strands_robots_sim.policies.gr00t import Gr00tPolicy
 
         with patch(_CLIENT_PATH):
             assert (
-                Gr00tPolicy(data_config="libero", host="localhost", port=9999, groot_version="n1d6").protocol_name
+                Gr00tPolicy(data_config="libero", host="localhost", port=9999, gr00t_version="n1d6").protocol_name
                 == "sim_wrapper"
             )
 
     def test_legacy_n1d5(self):
-        from strands_robots_sim.policies.groot import Gr00tPolicy
+        from strands_robots_sim.policies.gr00t import Gr00tPolicy
 
         with patch(_CLIENT_PATH):
             assert (
-                Gr00tPolicy(data_config="libero", host="localhost", port=9999, groot_version="n1d5").protocol_name
+                Gr00tPolicy(data_config="libero", host="localhost", port=9999, gr00t_version="n1d5").protocol_name
                 == "direct"
             )
 
     def test_default_from_config(self):
-        from strands_robots_sim.policies.groot import Gr00tPolicy
+        from strands_robots_sim.policies.gr00t import Gr00tPolicy
 
         with patch(_CLIENT_PATH):
             assert Gr00tPolicy(data_config="libero", host="localhost", port=9999).protocol_name == "sim_wrapper"

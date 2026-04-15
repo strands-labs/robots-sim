@@ -16,7 +16,7 @@ pytestmark = pytest.mark.mock
 
 
 @pytest.mark.libero
-def test_libero_with_mock_groot():
+def test_libero_with_mock_gr00t():
     """
     Test Choice 1: Real Libero + Mock GR00T
 
@@ -191,9 +191,9 @@ def test_mock_agent_with_tools():
     mock_sim_env.tool_name = "my_libero_sim"
 
     # Mock GR00T inference tool
-    mock_groot = MagicMock()
+    mock_gr00t = MagicMock()
 
-    def mock_groot_call(action, **kwargs):
+    def mock_gr00t_call(action, **kwargs):
         if action == "start":
             return "✅ GR00T service started (mocked)"
         elif action == "status":
@@ -204,12 +204,12 @@ def test_mock_agent_with_tools():
             return {"action": [0.0] * 7}
         return "ok"
 
-    mock_groot.side_effect = mock_groot_call
+    mock_gr00t.side_effect = mock_gr00t_call
 
     # Mock Agent
     mock_agent = MagicMock()
     mock_agent.tool = MagicMock()
-    mock_agent.tool.gr00t_inference = mock_groot
+    mock_agent.tool.gr00t_inference = mock_gr00t
     mock_agent.tool.my_libero_sim = lambda action: f"Mock simulation {action}"
 
     # Test workflow

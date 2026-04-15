@@ -25,7 +25,7 @@ class Gr00tPolicy(Policy):
     """GR00T policy: connects to a GR00T inference server via ZMQ."""
 
     def __init__(self, data_config: Union[str, dict], host: str = "localhost", port: int = 5555, **kwargs):
-        protocol_override = kwargs.pop("protocol", kwargs.pop("groot_version", None))
+        protocol_override = kwargs.pop("protocol", kwargs.pop("gr00t_version", None))
         # Map legacy version aliases to protocol names
         _aliases = {"n1d6": "sim_wrapper", "n1.6": "sim_wrapper", "n1d5": "direct", "n1.5": "direct"}
         if protocol_override in _aliases:
@@ -49,12 +49,12 @@ class Gr00tPolicy(Policy):
 
     # Backward-compat alias
     @property
-    def groot_version(self) -> str:
+    def gr00t_version(self) -> str:
         return self.protocol_name
 
     @property
     def provider_name(self) -> str:
-        return "groot"
+        return "gr00t"
 
     def set_robot_state_keys(self, robot_state_keys: List[str]) -> None:
         self.robot_state_keys = robot_state_keys

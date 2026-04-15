@@ -263,7 +263,7 @@ class SimEnv(AgentTool):
             logger.info(f"⚙️ Data config: {data_config}")
 
     async def _get_policy(
-        self, policy_port: Optional[int] = None, policy_host: str = "localhost", policy_provider: str = "groot"
+        self, policy_port: Optional[int] = None, policy_host: str = "localhost", policy_provider: str = "gr00t"
     ) -> Policy:
         """Create policy on-the-fly from invocation parameters."""
 
@@ -312,7 +312,7 @@ class SimEnv(AgentTool):
         instruction: str,
         policy_port: Optional[int] = None,
         policy_host: str = "localhost",
-        policy_provider: str = "groot",
+        policy_provider: str = "gr00t",
         max_episodes: int = 10,
         max_steps_per_episode: int = 500,
         task_name: Optional[str] = None,
@@ -482,7 +482,7 @@ class SimEnv(AgentTool):
         instruction: str,
         policy_port: Optional[int] = None,
         policy_host: str = "localhost",
-        policy_provider: str = "groot",
+        policy_provider: str = "gr00t",
         max_episodes: int = 10,
         max_steps_per_episode: int = 500,
         task_name: Optional[str] = None,
@@ -542,7 +542,7 @@ class SimEnv(AgentTool):
         instruction: str,
         policy_port: Optional[int] = 8000,
         policy_host: str = "localhost",
-        policy_provider: str = "groot",
+        policy_provider: str = "gr00t",
         max_episodes: int = 1,
         max_steps_per_episode: int = 500,
         task_name: Optional[str] = None,
@@ -697,8 +697,8 @@ class SimEnv(AgentTool):
                         },
                         "policy_provider": {
                             "type": "string",
-                            "description": "Policy provider (groot, openai, etc.)",
-                            "default": "groot",
+                            "description": "Policy provider (gr00t, openai, etc.)",
+                            "default": "gr00t",
                         },
                         "max_episodes": {
                             "type": "integer",
@@ -745,7 +745,7 @@ class SimEnv(AgentTool):
                 instruction = input_data.get("instruction", "")
                 policy_port = input_data.get("policy_port", 8000)
                 policy_host = input_data.get("policy_host", "localhost")
-                policy_provider = input_data.get("policy_provider", "groot")
+                policy_provider = input_data.get("policy_provider", "gr00t")
                 max_episodes = input_data.get("max_episodes", 1)
                 max_steps_per_episode = input_data.get("max_steps_per_episode", 500)
                 task_name = input_data.get("task_name")
@@ -784,7 +784,7 @@ class SimEnv(AgentTool):
                 instruction = input_data.get("instruction", "")
                 policy_port = input_data.get("policy_port", 8000)
                 policy_host = input_data.get("policy_host", "localhost")
-                policy_provider = input_data.get("policy_provider", "groot")
+                policy_provider = input_data.get("policy_provider", "gr00t")
                 max_episodes = input_data.get("max_episodes", 1)
                 max_steps_per_episode = input_data.get("max_steps_per_episode", 500)
                 task_name = input_data.get("task_name")

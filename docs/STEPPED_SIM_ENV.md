@@ -121,7 +121,7 @@ tool_use = {
         "instruction": "move gripper to the target object",
         "policy_port": 8000,
         "policy_host": "localhost",
-        "policy_provider": "groot",
+        "policy_provider": "gr00t",
         "num_steps": 10,  # Optional, defaults to steps_per_call
     }
 }

@@ -147,7 +147,7 @@ class SteppedSimEnv(AgentTool):
             return False
 
     async def _ensure_policy_initialized(
-        self, policy_port: int, policy_host: str = "localhost", policy_provider: str = "groot"
+        self, policy_port: int, policy_host: str = "localhost", policy_provider: str = "gr00t"
     ) -> bool:
         """Ensure policy is initialized with given configuration."""
         try:
@@ -623,8 +623,8 @@ class SteppedSimEnv(AgentTool):
                         },
                         "policy_provider": {
                             "type": "string",
-                            "description": "Policy provider (groot, openai, etc.)",
-                            "default": "groot",
+                            "description": "Policy provider (gr00t, openai, etc.)",
+                            "default": "gr00t",
                         },
                         "task_name": {
                             "type": "string",
@@ -671,7 +671,7 @@ class SteppedSimEnv(AgentTool):
                 num_steps = input_data.get("num_steps")
                 policy_port = input_data.get("policy_port", 8000)
                 policy_host = input_data.get("policy_host", "localhost")
-                policy_provider = input_data.get("policy_provider", "groot")
+                policy_provider = input_data.get("policy_provider", "gr00t")
 
                 if not instruction:
                     yield ToolResultEvent(

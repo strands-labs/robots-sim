@@ -21,7 +21,7 @@ try:
     from strands_robots_sim.tools.gr00t_inference import gr00t_inference
 
     try:
-        from strands_robots_sim.policies.groot import Gr00tPolicy
+        from strands_robots_sim.policies.gr00t import Gr00tPolicy
 
         __all__ = [
             "SimEnv",

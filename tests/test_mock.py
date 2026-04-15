@@ -137,7 +137,7 @@ class MockGR00TServer:
 
 
 @pytest.fixture
-def mock_groot_server():
+def mock_gr00t_server():
     """Fixture to start and stop mock GR00T server."""
     server = MockGR00TServer(port=8000)
     assert server.start(), "Failed to start mock server"  # nosec B101
@@ -145,7 +145,7 @@ def mock_groot_server():
     server.stop()
 
 
-def test_fully_mock_simulation(mock_groot_server):
+def test_fully_mock_simulation(mock_gr00t_server):
     """Test full mock simulation with no dependencies - Mock Libero + Mock GR00T."""
     from strands import Agent
 
@@ -170,7 +170,7 @@ def test_fully_mock_simulation(mock_groot_server):
     result = agent.tool.my_mock_sim(
         action="execute",
         instruction="pick up the red block using mock actions",
-        policy_port=mock_groot_server.port,
+        policy_port=mock_gr00t_server.port,
         policy_provider="mock",  # Use mock policy
         max_episodes=2,
         max_steps_per_episode=10,

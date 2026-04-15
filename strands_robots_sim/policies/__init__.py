@@ -81,9 +81,9 @@ def create_policy(provider: str, **kwargs) -> Policy:
     """Create a policy instance based on provider name.
 
     Args:
-        provider: Provider name ("groot", "mock", etc.)
+        provider: Provider name ("gr00t", "mock", etc.)
         **kwargs: Provider-specific parameters
-            For groot: data_config (str or object), host, port, etc.
+            For gr00t: data_config (str or object), host, port, etc.
             For mock: any parameters (ignored)
 
     Returns:
@@ -94,13 +94,13 @@ def create_policy(provider: str, **kwargs) -> Policy:
     """
     if provider == "mock":
         return MockPolicy(**kwargs)
-    elif provider == "groot":
-        from .groot import Gr00tPolicy
+    elif provider == "gr00t":
+        from .gr00t import Gr00tPolicy
 
         # Gr00tPolicy requires data_config as first positional argument
         data_config = kwargs.pop("data_config", None)
         if data_config is None:
-            raise ValueError("data_config is required for groot policy")
+            raise ValueError("data_config is required for gr00t policy")
 
         return Gr00tPolicy(data_config, **kwargs)
     else:
@@ -110,7 +110,7 @@ def create_policy(provider: str, **kwargs) -> Policy:
             PolicyClass = getattr(module, f"{provider.capitalize()}Policy")
             return PolicyClass(**kwargs)
         except (ImportError, AttributeError):
-            available = ["groot", "mock"]
+            available = ["gr00t", "mock"]
             raise ValueError(f"Unknown policy provider: {provider}. Available: {available}")
 
 

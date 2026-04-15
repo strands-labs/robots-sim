@@ -671,17 +671,17 @@ def add_architecture_diagram_slide(prs, title):
     p.font.color.rgb = RGBColor(150, 220, 150)
 
     # GR00T VLA box
-    groot_box = slide.shapes.add_shape(
+    gr00t_box = slide.shapes.add_shape(
         MSO_SHAPE.ROUNDED_RECTANGLE,
         Inches(5.5), Inches(4.6), Inches(3.5), Inches(0.9)
     )
-    groot_box.fill.solid()
-    groot_box.fill.fore_color.rgb = RGBColor(70, 130, 70)
-    groot_box.line.color.rgb = RGBColor(150, 220, 150)
-    groot_box.line.width = Pt(2.5)
-    groot_text = groot_box.text_frame
-    groot_text.text = "🧠 GR00T VLA Policy\nVision-Language-Action (3B)"
-    p = groot_text.paragraphs[0]
+    gr00t_box.fill.solid()
+    gr00t_box.fill.fore_color.rgb = RGBColor(70, 130, 70)
+    gr00t_box.line.color.rgb = RGBColor(150, 220, 150)
+    gr00t_box.line.width = Pt(2.5)
+    gr00t_text = gr00t_box.text_frame
+    gr00t_text.text = "🧠 GR00T VLA Policy\nVision-Language-Action (3B)"
+    p = gr00t_text.paragraphs[0]
     p.font.size = Pt(13)
     p.font.bold = True
     p.font.color.rgb = RGBColor(255, 255, 255)

@@ -221,7 +221,7 @@ strands-robots-sim/
 │   │   └── env_libero.py     # Libero integration
 │   ├── policies/             # Policy abstraction
 │   │   ├── __init__.py       # Policy base + factory
-│   │   └── groot/            # GR00T implementation
+│   │   └── gr00t/            # GR00T implementation
 │   │       ├── __init__.py
 │   │       ├── client.py     # ZMQ client
 │   │       └── data_config.py # Embodiment configs
@@ -453,7 +453,7 @@ from strands_robots_sim import create_policy
 
 # GR00T policy (requires Isaac-GR00T Docker container)
 policy = create_policy(
-    provider="groot",
+    provider="gr00t",
     data_config="libero",
     host="localhost",
     port=8000
@@ -479,7 +479,7 @@ class Policy(ABC):
 ```
 
 **Currently Available:**
-- ✅ **groot** - Isaac-GR00T VLA policy (fully implemented)
+- ✅ **gr00t** - Isaac-GR00T VLA policy (fully implemented)
 - ✅ **mock** - Mock policy for testing (fully implemented)
 
 **Designed For (Not Yet Implemented):**
@@ -604,7 +604,7 @@ pytest -m libero -v
 pytest tests/test_libero_mock.py::test_fully_mock_simulation -v
 
 # Test Libero with mock GR00T
-pytest tests/test_libero_mock.py::test_libero_with_mock_groot -v
+pytest tests/test_libero_mock.py::test_libero_with_mock_gr00t -v
 
 # Test fast Libero simulation
 pytest tests/test_libero_fast.py::test_fast_libero_simulation -v
@@ -625,7 +625,7 @@ pytest tests/test_libero_fast.py::test_fast_libero_simulation -v
 #### 3. Mock Libero + GR00T (`test_libero_mock.py`)
 - **Requirements**: Varies by test
   - `test_fully_mock_simulation`: No dependencies
-  - `test_libero_with_mock_groot`: Requires Libero
+  - `test_libero_with_mock_gr00t`: Requires Libero
   - `test_mock_agent_with_tools`: No dependencies
 - **Purpose**: Test different mock scenarios and combinations
 - **Best for**: Testing without full GR00T Docker setup

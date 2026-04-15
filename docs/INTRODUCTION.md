@@ -318,7 +318,7 @@ strands-robots-sim/
 │   │   └── env_libero.py       # Libero integration
 │   ├── policies/               # Policy implementations
 │   │   ├── __init__.py         # Policy base + factory
-│   │   └── groot/              # GR00T implementation (only VLA implemented)
+│   │   └── gr00t/              # GR00T implementation (only VLA implemented)
 │   │       ├── __init__.py
 │   │       ├── client.py       # ZMQ client
 │   │       └── data_config.py  # Embodiment configs
