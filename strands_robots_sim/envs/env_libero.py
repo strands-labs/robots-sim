@@ -210,6 +210,9 @@ class LiberoEnvironment(SimulationEnvironment):
             self.current_task_name = task.language
 
             print(f"🔄 Libero environment reset to task: {task.name}")
+            # NOTE: obs is captured before set_init_state() is applied above.
+            # Callers should not rely on this obs for policy execution; instead,
+            # re-fetch the observation after the physics warm-up steps.
             return self._process_observation(obs)
 
         except Exception as e:
