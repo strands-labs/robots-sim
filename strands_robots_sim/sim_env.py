@@ -370,8 +370,11 @@ class SimEnv(AgentTool):
                 # Reset environment for new episode
                 observation = await self.sim_env.reset(task_name)
 
-                # Wait for physics to settle before running policy
-                # Reference: Isaac-GR00T/examples/Libero/eval/run_libero_eval.py num_steps_wait=10
+                # Wait for physics to settle before running policy.
+                # Gripper -1 (closed) matches LIBERO task initial states and mirrors
+                # Isaac-GR00T/examples/Libero/eval/run_libero_eval.py warm-up convention.
+                # Note: action[6] is a delta command, not gripper_qpos — do not substitute
+                # observation state here as the units differ.
                 for _ in range(NUM_PHYSICS_WARMUP_STEPS):
                     observation, _, done, _ = await self.sim_env.step({"action": [0, 0, 0, 0, 0, 0, -1]})
                     if done:
