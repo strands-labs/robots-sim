@@ -589,3 +589,110 @@ class TestInstallConstants:
             # Only assert composition when we actually hit the omni branch
             # (CUDA / torch branches return earlier on some hosts).
             assert reason == _install.not_importable_reason()
+
+
+class TestCreateWorldGravityScalarApi:
+    """Regression pins for `strands-labs/robots-sim#52` — Isaac Sim 5.1
+    `PhysicsContext.set_gravity` API mismatch (took vec3 pre-5.1, takes
+    a scalar magnitude in 5.1).
+
+    Without Isaac Sim installed we can't exercise `create_world`'s
+    runtime path on this CI host, so the regression is pinned via
+    source-inspection: the scalar-extraction call site and the
+    `TypeError`-tolerant `except` clause are both pinned so a future
+    refactor can't silently revert either one.
+    """
+
+    def test_set_gravity_call_extracts_scalar_from_vector(self) -> None:
+        """`create_world` must extract a scalar Z-component before calling
+        `set_gravity`.
+
+        Isaac Sim 5.1's `PhysicsContext.set_gravity(value: float)` raises
+        `TypeError` if handed a list/tuple. The fix at PR #47 commit
+        `a65f9f9` added the `grav[2]` extraction; this test pins it so
+        a future refactor doesn't accidentally revert to the pre-5.1
+        vector-pass pattern that #52 reproduced.
+        """
+        import inspect
+
+        from strands_robots_sim.isaac import simulation
+
+        source = inspect.getsource(simulation)
+
+        # Both halves of the fix must be present: the extraction line
+        # and the call site that consumes its result.
+        extraction = "gravity_magnitude = grav[2] if isinstance(grav, (list, tuple)) else grav"
+        call_site = "set_gravity(gravity_magnitude)"
+
+        assert extraction in source, (
+            "create_world() must extract a scalar Z-component before set_gravity. "
+            "If this assertion fails, a refactor likely reverted the fix from "
+            "https://github.com/strands-labs/robots-sim/issues/52 — Isaac Sim 5.1 "
+            "set_gravity takes a scalar, not a vec3. Restore the extraction line."
+        )
+        assert call_site in source, (
+            "set_gravity must be invoked with the extracted scalar (gravity_magnitude). "
+            "If this assertion fails, the call site was rewritten to pass the raw "
+            "list — that path will TypeError under Isaac Sim 5.1 (see #52)."
+        )
+
+    def test_create_world_except_clause_catches_typeerror(self) -> None:
+        """`create_world`'s narrow except clause must include `TypeError`.
+
+        Defence in depth for #52-class surface drift: Isaac Sim 5.1's
+        `set_gravity(value: float)` already rejects non-scalar input
+        with `TypeError`, and other physics-context calls (e.g.
+        `set_solver_position_iteration_count`) have the same shape.
+        Catching `TypeError` here means a future regression on any of
+        those paths surfaces as a structured error envelope rather
+        than an unhandled exception.
+        """
+        import ast
+        import inspect
+
+        from strands_robots_sim.isaac import simulation
+
+        source = inspect.getsource(simulation)
+        tree = ast.parse(source)
+
+        # Find the create_world function and inspect its top-level
+        # except clauses. The relevant one is the broad-tuple clause
+        # that handles partial-init cleanup; ImportError stays in its
+        # own clause (specific recovery message).
+        create_world_fn = None
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef) and node.name == "create_world":
+                create_world_fn = node
+                break
+
+        assert create_world_fn is not None, "create_world() function not found in simulation module"
+
+        # Walk the try / except block(s) inside create_world and find
+        # the catch-tuple clause (the narrow except that handles
+        # partial-init cleanup).
+        broad_except_caught: tuple[str, ...] | None = None
+        for node in ast.walk(create_world_fn):
+            if isinstance(node, ast.ExceptHandler) and isinstance(node.type, ast.Tuple):
+                names = tuple(elt.id for elt in node.type.elts if isinstance(elt, ast.Name))
+                # We want the cleanup clause, identified by it catching
+                # RuntimeError + ValueError + OSError + AttributeError
+                # at minimum (the pre-#52 superset).
+                if {"RuntimeError", "ValueError", "OSError", "AttributeError"}.issubset(set(names)):
+                    broad_except_caught = names
+                    break
+
+        assert broad_except_caught is not None, (
+            "create_world() lost its narrow-tuple except clause. "
+            "Re-add it as `except (RuntimeError, ValueError, OSError, AttributeError, TypeError) as e:` "
+            "to keep partial-init cleanup behaviour consistent (see #52)."
+        )
+
+        assert "TypeError" in broad_except_caught, (
+            f"create_world() except clause is {broad_except_caught!r}; "
+            f"missing TypeError. Add it back per "
+            f"https://github.com/strands-labs/robots-sim/issues/52 — "
+            f"Isaac Sim 5.1 set_gravity raises TypeError on non-scalar input, "
+            f"and other physics-context calls have the same shape; catching "
+            f"TypeError here means surface drift surfaces as a structured "
+            f"error envelope rather than an unhandled exception."
+        )

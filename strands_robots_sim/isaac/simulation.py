@@ -464,13 +464,18 @@ class IsaacSimulation(SimEngine):
                         {"text": (f"Isaac Sim import failed: {e}. " "Ensure Isaac Sim is installed and accessible.")}
                     ],
                 }
-            except (RuntimeError, ValueError, OSError, AttributeError) as e:
+            except (RuntimeError, ValueError, OSError, AttributeError, TypeError) as e:
                 # Cleanup on partial failure. Narrow to what World() /
                 # set_gravity / add_default_ground_plane / reset actually
                 # raise on Isaac: RuntimeError (Carb / sim init), ValueError
-                # (gravity vector shape), OSError (USD/Nucleus IO),
-                # AttributeError (omni surface drift). Programming bugs
-                # (NameError, ImportError-not-already-caught above) propagate.
+                # (USD prim shape mismatches, e.g. set_init_state on the
+                # ground plane), OSError (USD/Nucleus IO), AttributeError
+                # (omni surface drift across SDK versions), TypeError
+                # (Isaac Sim 5.1 ``set_gravity`` rejects non-scalar input
+                # — see #52; defence in depth for similar argument-shape
+                # surface drift on neighbouring physics-context calls).
+                # Programming bugs (NameError, ImportError-not-already-
+                # caught above) propagate.
                 self._world = None
                 logger.error("Failed to create Isaac world: %s", e)
                 return {
