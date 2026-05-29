@@ -1,23 +1,23 @@
 """Documentation honesty pin: G1 DOF count.
 
-R2 review on #31 surfaced that ``procedural.py``'s G1 docstring / inline
-comment claimed "29 DOF" but the actual ``g1()`` joint set is 21 (1 torso
-+ 6 left leg + 6 right leg + 4 left arm + 4 right arm). ``__init__.py``
-and ``docs/backends/isaac.md`` already advertised 21-DOF; only
-``procedural.py`` was stale. Pinned here so the comment / docstring don't
-drift back out of sync with the code under future refactors.
+The ``unitree_g1`` procedural definition has 21 actuated joints (1 torso
++ 6 left leg + 6 right leg + 4 left arm + 4 right arm). This pin keeps
+``procedural.py``'s G1 module docstring, the ``_build_unitree_g1`` builder
+docstring, and the joint set itself in sync, so a future refactor that
+changes one without the others fails loudly rather than letting the
+docs drift back out of date.
 
-Companion pin for the ``docs/backends/isaac.md`` Phase 1 banner lives in
-``test_phase1_doc_banner.py`` (lands in PR-5 alongside the docs file
-itself).
+Companion pins:
 
-The kinematic-tree topology invariant (each non-root link has exactly
-one inbound joint; G1 splits its 2-DOF compound joints through six
-intermediate massless link bodies) is pinned in this same PR's companion
-file ``test_procedural_kinematic_guard.py``. Split by concern: this
-file pins doc/comment honesty against a stale literal value, that file
-pins the invariant the literal value is asserting against. Both run on
-every CI invocation; neither is deferred.
+- ``test_phase1_doc_banner.py`` -- the Phase-1 status banner in
+  ``docs/backends/isaac.md``.
+- ``test_procedural_kinematic_guard.py`` -- the kinematic-tree topology
+  invariant (each non-root link has exactly one inbound joint; G1 splits
+  its 2-DOF compound joints through six intermediate massless link
+  bodies). This file pins doc/comment honesty against the literal value;
+  that file pins the invariant the literal value is asserting against.
+
+Both companion pins run on every CI invocation; none are deferred.
 """
 
 from __future__ import annotations

@@ -1,15 +1,20 @@
 """Entry-point + lazy-import tests for the Isaac backend skeleton.
 
-This is the PR-1 slice of #31 (see issue #42): the `[isaac]` extra,
-the ``strands_robots.backends`` entry points, and the PEP 562 lazy
-``strands_robots_sim.isaac`` import surface.
+Pins the three pieces of packaging surface that the Isaac backend
+relies on:
 
-Class-level contracts that depend on
-``strands_robots_sim.isaac.simulation`` (``SimEngine`` subclassing,
-abstract-method completeness, ``is_available()`` return shape, no-GPU
-constructor) are covered in PR-4 once that module lands; importing
-``IsaacSimulation`` here would create a hard dependency on PR-4 that
-defeats the point of the split.
+1. The ``[isaac]`` extra is declared in ``pyproject.toml`` and pulls in
+   the pip-installable subset of Isaac Sim's runtime deps (``usd-core``,
+   ``warp-lang``, ``pytest``).
+2. The ``isaac`` and ``isaac_sim`` entry points under
+   ``strands_robots.backends`` resolve to
+   ``strands_robots_sim.isaac.simulation:IsaacSimulation``.
+3. ``import strands_robots_sim.isaac`` is a PEP 562 lazy stub: it loads
+   without pulling any ``omni.*`` modules into ``sys.modules``.
+
+Contracts that depend on the simulation module itself (``SimEngine``
+subclassing, abstract-method completeness, ``is_available()`` return
+shape, no-GPU constructor) are covered in ``test_unit.py``.
 
 Run with:: pytest strands_robots_sim/isaac/tests/test_entrypoint.py -v
 """
@@ -31,12 +36,11 @@ class TestEntryPointDeclaration:
         assert _PYPROJECT.exists(), f"pyproject.toml not found at {_PYPROJECT}"
 
     def test_isaac_entry_point_declared_in_pyproject(self):
-        """``isaac`` entry point points at the planned simulation module."""
+        """``isaac`` entry point points at the simulation module."""
         content = _PYPROJECT.read_text()
         assert 'isaac = "strands_robots_sim.isaac.simulation:IsaacSimulation"' in content, (
             'Expected `isaac = "strands_robots_sim.isaac.simulation:IsaacSimulation"` '
-            'under [project.entry-points."strands_robots.backends"] in pyproject.toml. '
-            "PR-4 of the #31 split will land the simulation module the entry point resolves to."
+            'under [project.entry-points."strands_robots.backends"] in pyproject.toml.'
         )
 
     def test_isaac_sim_alias_entry_point_declared_in_pyproject(self):

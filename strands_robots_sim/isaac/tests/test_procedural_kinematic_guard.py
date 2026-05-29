@@ -1,18 +1,10 @@
 """Fail-first kinematic-tree pin: ``_validate_kinematic_tree``.
 
-cagataycali's review on PR #46 first asked for a guard against the documented
-duplicate-edge defect on G1 (which would have surfaced as a cryptic USD /
-MuJoCo articulation error two layers down). The first round of that fix added
-the guard but kept it opt-in via ``STRANDS_ISAAC_VALIDATE_KINEMATICS=1`` to
-preserve the Phase-1-callers-don't-instantiate fiction. cagataycali's
-follow-up review on PR #51 pushed back: shipping a robot we know cannot
-instantiate has no good use case in this package, and the default should
-fail first rather than silently producing a broken robot.
-
-This pin enforces the fail-first contract:
+This pin enforces the fail-first contract for procedural-builder validation:
 
 1. ``_validate_kinematic_tree`` runs unconditionally on every procedural
-   builder. There is no env-var escape hatch.
+   builder. There is no env-var escape hatch -- a knowingly-broken robot
+   has no good use case in this package, so callers cannot opt out.
 2. All three shipped procedural robots (``so100``, ``panda``, ``unitree_g1``)
    build cleanly under that contract -- so the G1 builder must keep its
    topology a valid tree (intermediate massless link bodies between the
@@ -21,7 +13,8 @@ This pin enforces the fail-first contract:
    indices + joint names so the offender is obvious from the traceback alone.
 
 A future refactor that re-introduces a duplicate ``(parent, child)`` edge
-or relaxes the guard will fail this pin rather than silently regressing.
+or relaxes the guard will fail this pin rather than silently regressing
+into a robot that can't instantiate.
 """
 
 from __future__ import annotations

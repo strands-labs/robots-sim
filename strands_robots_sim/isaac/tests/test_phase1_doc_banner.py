@@ -1,17 +1,23 @@
 """Documentation honesty pin: Phase 1 status banner in docs/backends/isaac.md.
 
-R2 review on #31 (``simulation.py:627`` thread) asked for a doc note in
-``docs/backends/isaac.md``'s Quick Start that the Phase 1 skeleton
-silently no-ops the data plane (``add_robot`` on the procedural branch,
-``_load_usd_robot``, ``_load_urdf_robot``, ``add_object``, ``add_camera``,
-``replicate`` all return ``status: "success"`` without instantiating the
-underlying USD prim or articulation handle). Reviewer's "at minimum"
-ask: a banner before the Installation section, so the disclosure precedes
-the documented call sequence.
+The Phase 1 skeleton silently no-ops the data plane: ``add_robot`` on
+the procedural branch, ``_load_usd_robot``, ``_load_urdf_robot``,
+``add_object``, ``add_camera``, and ``replicate`` all return
+``status: "success"`` without instantiating the underlying USD prim or
+articulation handle. ``docs/backends/isaac.md`` discloses this in a
+``Phase 1 status`` banner before the Installation section, so the
+disclosure precedes the documented call sequence rather than appearing
+after a user would have already executed the silent no-ops.
 
-Companion pin for the G1 DOF count lives in ``test_procedural_g1_dof.py``
-(landed in PR-3 alongside ``procedural.py`` itself). This file pins only
-the docs-side concerns.
+This pin enforces three properties of the banner:
+
+1. The banner exists.
+2. It precedes the ``## Installation`` heading.
+3. It enumerates the affected call surfaces (``add_robot``, ``replicate``,
+   ``get_observation``).
+
+Companion pin for the G1 DOF count lives in ``test_procedural_g1_dof.py``;
+this file pins only the docs-side concerns.
 """
 
 from __future__ import annotations
@@ -30,9 +36,9 @@ class TestIsaacDocsPhase1Banner:
     def test_phase1_banner_present_before_installation(self) -> None:
         """Banner must appear before the Installation / Quick Start sections.
 
-        Reviewer (R2 on PR #31, ``simulation.py:627`` thread): "At minimum,
-        please add a note to ``docs/backends/isaac.md`` Quick Start that the
-        Phase-1 skeleton silently no-ops the data plane."
+        The disclosure precedes any procedural docs the user would otherwise
+        execute, so a maintainer who reads only the Quick Start sees the
+        silent-no-op caveat first.
         """
         text = _ISAAC_DOCS.read_text(encoding="utf-8")
 
@@ -44,9 +50,9 @@ class TestIsaacDocsPhase1Banner:
 
         assert banner_marker in text, (
             "docs/backends/isaac.md missing the Phase 1 status disclosure "
-            "banner. R2 reviewer asked for it explicitly because the doc's "
-            "Quick Start otherwise executes a code path that silently no-ops "
-            "on a real Isaac Sim install."
+            "banner. The doc's Quick Start otherwise executes a code path "
+            "that silently no-ops on a real Isaac Sim install -- so the "
+            "banner must precede the documented call sequence."
         )
         assert (
             install_marker in text
