@@ -9,7 +9,7 @@ name = "strands-robots-sim"
 # *after* this PR + R7 + the upstream U2 entry-point walker have all
 # merged; the working tree between tags reports 0.x.y.devN+g<sha>.
 dynamic = ["version"]
-description = "Heavy NVIDIA simulation backends (Isaac Sim, Newton) for strands-robots — registered as entry-point plugins."
+description = "GPU-accelerated NVIDIA simulation backends (Isaac Sim, Newton) for strands-robots — registered as entry-point plugins."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}
@@ -37,9 +37,9 @@ classifiers = [
 # walks `[project.entry-points."strands_robots.backends"]` to discover
 # pluggable backends like the Isaac/Newton ones registered below).
 #
-# Heavy / GPU-only backend dependencies (Isaac Sim, Newton/Warp) live behind
+# GPU-only backend dependencies (Isaac Sim, Newton/Warp) live behind
 # the `[isaac]` / `[newton]` / `[all]` extras; pip-install with no extras
-# keeps the runtime tiny and lets users layer the heavy bits on per-host.
+# keeps the runtime tiny and lets users layer the GPU bits on per-host.
 dependencies = [
     "strands-robots>=0.4.0",
 ]

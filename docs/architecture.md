@@ -118,7 +118,7 @@ Importing `strands_robots_sim` must not import `omni.*` — that would force
 every `strands-robots` user to have Isaac Sim installed, defeating the
 plugin design. We use **PEP 562 lazy module-level `__getattr__`** so
 `from strands_robots_sim.isaac import IsaacSimulation` only triggers the
-heavy import on first attribute access:
+expensive `omni.*` import on first attribute access:
 
 ```python
 # strands_robots_sim/isaac/__init__.py (sketch)
@@ -186,14 +186,14 @@ Two invariants you will hit if you ignore them:
 |---|---|---|
 | `Simulation` AgentTool, `SimEngine` ABC, `create_simulation` factory | `strands-robots` | Upstream owns the agent-facing surface |
 | `MuJoCoSimEngine`, `MockPolicy`, LIBERO adapter | `strands-robots` | Default backend; runs everywhere |
-| `IsaacSimulation`, `IsaacConfig`, procedural builders, URDF/MJCF/USD loaders | `strands-robots-sim` (here) | Heavy NVIDIA-only dependency |
+| `IsaacSimulation`, `IsaacConfig`, procedural builders, URDF/MJCF/USD loaders | `strands-robots-sim` (here) | GPU-accelerated NVIDIA-only dependency |
 | Robot catalog (`robots.json`), policy providers (GR00T, LeRobot, cuRobo) | `strands-robots` | Backend-agnostic |
 | Hardware (`HardwareRobot`, mesh, IoT, device-connect) | `strands-robots` | Same |
 | Replicator synth-data pipeline | `strands-robots-sim` (here) | Isaac-specific |
 | LIBERO `run_isaac.py` / `run_isaac_agent.py` example drivers | `strands-robots-sim` (here) | Backend-specific entry points |
 
 The split is deliberate: `strands-robots` is the agent's view of the
-world; `strands-robots-sim` is the heavy Isaac plumbing behind one of the
+world; `strands-robots-sim` is the GPU-accelerated Isaac plumbing behind one of the
 plug-in slots that view exposes.
 
 ## Next

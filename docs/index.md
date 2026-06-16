@@ -1,8 +1,8 @@
 # Strands Robots Sim
 
-> Heavy NVIDIA **Isaac Sim** backend for [`strands-robots`](https://github.com/strands-labs/robots).
+> GPU-accelerated NVIDIA **Isaac Sim** backend for [`strands-robots`](https://github.com/strands-labs/robots).
 
-`strands-robots-sim` is the heavy-backend companion to `strands-robots`. It
+`strands-robots-sim` is the GPU-accelerated Isaac Sim companion to `strands-robots`. It
 ships an [`IsaacSimulation`](api-reference.md) that plugs into the same
 `SimEngine` ABC the upstream MuJoCo backend implements, so a Strands Agent
 that drives a MuJoCo world today can switch to Isaac Sim by changing a

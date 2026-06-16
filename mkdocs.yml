@@ -1,10 +1,10 @@
 site_name: Strands Robots Sim
 site_url: https://strands-labs.github.io/robots-sim
-site_description: "Heavy NVIDIA Isaac Sim backend for strands-robots"
+site_description: "GPU-accelerated NVIDIA Isaac Sim backend for strands-robots"
 repo_url: https://github.com/strands-labs/robots-sim
 repo_name: strands-labs/robots-sim
 extra_css:
-- stylesheets/extra.css?v=1
+- stylesheets/extra.css?v=2
 extra_javascript:
 - https://unpkg.com/mermaid@10/dist/mermaid.min.js
 - assets/mermaid-init.js
@@ -28,6 +28,8 @@ nav:
 - Security: security.md
 theme:
   name: material
+  logo: assets/strands-logo.svg
+  favicon: assets/strands-logo.svg
   palette:
     - scheme: default
       primary: white

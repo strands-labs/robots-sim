@@ -1,6 +1,6 @@
 # Simulation overview
 
-`IsaacSimulation` is the heavy NVIDIA backend behind the upstream
+`IsaacSimulation` is the GPU-accelerated NVIDIA backend behind the upstream
 `Simulation` AgentTool. It implements the `SimEngine` ABC from
 `strands-robots`, so the same agent / policy code that drives MuJoCo
 drives Isaac Sim — the only thing that changes is the backend string

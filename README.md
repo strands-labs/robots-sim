@@ -1,7 +1,7 @@
 <div align="center">
   <h1>Strands Robots Sim</h1>
 
-  <h2>The heavy NVIDIA Isaac Sim backend for <a href="https://github.com/strands-labs/robots"><code>strands-robots</code></a></h2>
+  <h2>The GPU-accelerated NVIDIA Isaac Sim backend for <a href="https://github.com/strands-labs/robots"><code>strands-robots</code></a></h2>
 
   <div align="center">
     <a href="https://pypi.org/project/strands-robots-sim/"><img alt="PyPI Version" src="https://img.shields.io/pypi/v/strands-robots-sim"/></a>
@@ -20,7 +20,7 @@
   </p>
 </div>
 
-`strands-robots-sim` is the heavy-backend companion to
+`strands-robots-sim` is the GPU-accelerated Isaac Sim companion to
 [`strands-robots`](https://github.com/strands-labs/robots). It ships an
 **`IsaacSimulation`** that plugs into the same `SimEngine` ABC the upstream
 MuJoCo backend implements, so a Strands Agent that drives a MuJoCo world
