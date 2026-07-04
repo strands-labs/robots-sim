@@ -224,7 +224,9 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     args = _build_parser().parse_args()
 
-    from strands_robots_sim.isaac import IsaacConfig, IsaacSimulation
+    from strands_robots.simulation import create_simulation
+
+    from strands_robots_sim.isaac import IsaacSimulation
 
     # Fail-fast on non-Isaac hosts (cheap probe, no omni import).
     available, reason = IsaacSimulation.is_available()
@@ -238,7 +240,7 @@ def main() -> None:
 
     out_dir = _date_out(args.out)
     # rtx_realtime so render() takes the RTX frame path (not headless blanks).
-    sim = IsaacSimulation(IsaacConfig(headless=True, num_envs=1, render_mode="rtx_realtime"))
+    sim = create_simulation("isaac", headless=True, num_envs=1, render_mode="rtx_realtime")
     try:
         build = build_default_scene(
             sim,

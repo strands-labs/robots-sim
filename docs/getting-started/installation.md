@@ -105,9 +105,9 @@ not just that the package imports. Run this with Isaac Sim's bundled Python
 (`python.sh` / `setup_python_env.sh`-activated venv):
 
 ```python
-from strands_robots_sim.isaac import IsaacSimulation, IsaacConfig
+from strands_robots.simulation import create_simulation
 
-sim = IsaacSimulation(IsaacConfig(render_mode="rtx_realtime", headless=True))
+sim = create_simulation("isaac", render_mode="rtx_realtime", headless=True)
 sim.create_world()                 # boots SimulationApp; resolves all extensions
 sim.add_robot("so100")
 sim.add_object(name="cube", shape="cuboid", position=[0.4, 0.0, 0.05])

@@ -34,9 +34,10 @@ sensible defaults:
 | `extra` | `{}` | Escape-hatch for experimental options. |
 
 ```python
-from strands_robots_sim.isaac import IsaacConfig, IsaacSimulation
+from strands_robots.simulation import create_simulation
 
-cfg = IsaacConfig(
+sim = create_simulation(
+    "isaac",
     num_envs=1,
     headless=True,
     render_mode="rtx_pathtracing",
@@ -44,16 +45,24 @@ cfg = IsaacConfig(
     camera_width=1280,
     camera_height=720,
 )
-sim = IsaacSimulation(cfg)
 ```
 
-`IsaacSimulation(IsaacConfig(headless=True, render_mode="rtx_realtime"))` is
-the supported way to construct the backend today. Once an upstream
-`strands-robots` release walks the `strands_robots.backends` entry-point
-group, `create_simulation("isaac", headless=True, render_mode="rtx_realtime")`
-will be shorthand for the same thing — kwargs are forwarded into
-`IsaacConfig` either way (tracked in
+`create_simulation("isaac", headless=True, render_mode="rtx_realtime")` is the
+recommended way to construct the backend: `strands-robots>=0.4.1` walks the
+`strands_robots.backends` entry-point group, so `create_simulation("isaac")`
+resolves to this repo's `IsaacSimulation` — the same UX as
+`create_simulation("mujoco")` (shipped via
 [`strands-labs/robots#131`](https://github.com/strands-labs/robots/issues/131)).
+The kwargs are forwarded into `IsaacConfig`. If you want the config object in
+hand — e.g. to introspect or `dataclasses.replace(...)` it before construction
+— build it explicitly and pass it to the class:
+
+```python
+from strands_robots_sim.isaac import IsaacConfig, IsaacSimulation
+
+cfg = IsaacConfig(num_envs=1, headless=True, render_mode="rtx_pathtracing")
+sim = IsaacSimulation(cfg)
+```
 
 ### Environment-variable overrides
 

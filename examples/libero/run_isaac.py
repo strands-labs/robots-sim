@@ -143,7 +143,9 @@ import datetime as _dt
 import os
 import time
 
-from strands_robots_sim.isaac import IsaacConfig, IsaacSimulation
+from strands_robots.simulation import create_simulation
+
+from strands_robots_sim.isaac import IsaacSimulation
 
 
 def _date_dir(date_root: str = "rollouts") -> str:
@@ -614,18 +616,23 @@ def main() -> None:
     else:
         policy_kwargs = {"policy_provider": "mock"}
 
-    # Construct the Isaac sim. headless=True avoids opening a Kit
-    # viewport (the GR00T eval doesn't need an interactive GUI); it does
-    # NOT control the render pipeline. render_mode="rtx_realtime" makes
-    # render() take the RTX frame path instead of short-circuiting to
-    # zero-filled (blank) frames in the default render_mode="headless",
-    # which is what produced all-black rollout MP4s. (Allowed modes:
-    # "headless", "rtx_realtime", "rtx_pathtracing" -- see config.py.
+    # Construct the Isaac sim via the strands-robots factory. Now that
+    # strands-robots>=0.4.1 walks the `strands_robots.backends`
+    # entry-point group, `create_simulation("isaac", ...)` resolves to
+    # this package's IsaacSimulation — same UX as create_simulation("mujoco").
+    # headless=True avoids opening a Kit viewport (the GR00T eval doesn't
+    # need an interactive GUI); it does NOT control the render pipeline.
+    # render_mode="rtx_realtime" makes render() take the RTX frame path
+    # instead of short-circuiting to zero-filled (blank) frames in the
+    # default render_mode="headless", which is what produced all-black
+    # rollout MP4s. (Allowed modes: "headless", "rtx_realtime",
+    # "rtx_pathtracing" -- see config.py.
     # STRANDS_ISAAC_RTX_PATHTRACING=1 upgrades to photoreal pathtracing.)
-    # The IsaacConfig dataclass is a pure-Python construct (no omni.*
-    # imports), so this constructor is cheap and runs on a non-Isaac
-    # host — the actual SimulationApp boot happens inside create_world().
-    sim = IsaacSimulation(IsaacConfig(headless=True, num_envs=1, render_mode="rtx_realtime"))
+    # The kwargs are forwarded to the IsaacConfig dataclass (a pure-Python
+    # construct with no omni.* imports), so this call is cheap and runs on
+    # a non-Isaac host — the actual SimulationApp boot happens inside
+    # create_world().
+    sim = create_simulation("isaac", headless=True, num_envs=1, render_mode="rtx_realtime")
     try:
         result = sim.create_world()
         if result.get("status") != "success":

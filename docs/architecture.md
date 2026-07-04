@@ -103,22 +103,21 @@ isaac = "strands_robots_sim.isaac.simulation:IsaacSimulation"
 ```
 
 When `strands-robots-sim` is installed, `importlib.metadata.entry_points`
-sees the `isaac` name. The intended flow is that `create_simulation("isaac", ...)`
-upstream walks the `strands_robots.backends` group, finds the `isaac` entry,
-imports the target string, and instantiates it.
+sees the `isaac` name. `create_simulation("isaac", ...)` upstream walks the
+`strands_robots.backends` group, finds the `isaac` entry, imports the target
+string, and instantiates it.
 
-!!! warning "Discovery is not live in the pinned upstream yet"
+!!! note "Discovery is live in `strands-robots>=0.4.1`"
 
-    No released `strands-robots` (this package pins `>=0.3.8,<0.4`) walks the
-    `strands_robots.backends` group from its `create_simulation` factory, so
-    `create_simulation("isaac")` currently raises
-    `ValueError: Unknown simulation backend: 'isaac'`. Until the upstream
-    walker ships
-    ([`strands-labs/robots#131`](https://github.com/strands-labs/robots/issues/131)),
-    construct the backend directly with
-    `IsaacSimulation(IsaacConfig(...))`. The entry-point declaration here is
-    forward-compatible plumbing: once upstream walks the group, no change to
-    this package is required.
+    `strands-robots>=0.4.1` walks the `strands_robots.backends` group from its
+    `create_simulation` factory (shipped via
+    [`strands-labs/robots#131`](https://github.com/strands-labs/robots/issues/131)),
+    so `create_simulation("isaac", ...)` resolves to this repo's
+    `IsaacSimulation` with nothing more than `pip install strands-robots-sim`.
+    The entry-point declaration here is all the plumbing required — no
+    upstream code change is needed to add a backend. You can still construct
+    the backend directly with `IsaacSimulation(IsaacConfig(...))` when you want
+    the config object in hand.
 
 This is the same pattern other packages use to extend `strands-robots`
 (future cuRobo / MoveIt2 backends, custom user backends). The upstream

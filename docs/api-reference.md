@@ -270,8 +270,10 @@ versions = update one constant (`ISAAC_SIM_DOCKER_IMAGE` /
 isaac = "strands_robots_sim.isaac.simulation:IsaacSimulation"
 ```
 
-Once an upstream `strands-robots` release walks the
-`strands_robots.backends` group, `create_simulation("isaac", ...)` will do:
+`strands-robots>=0.4.1` walks the `strands_robots.backends` group from its
+`create_simulation` factory (shipped via
+[`strands-labs/robots#131`](https://github.com/strands-labs/robots/issues/131)),
+so `create_simulation("isaac", ...)` does:
 
 ```python
 import importlib.metadata
@@ -281,8 +283,9 @@ cls = ep.load()
 return cls(**kwargs)
 ```
 
-Until then (the pinned floor is `strands-robots>=0.3.8,<0.4`, which has no
-such walker), construct the backend directly:
+This resolves to this repo's `IsaacSimulation` with nothing more than
+`pip install strands-robots-sim`. If you want the `IsaacConfig` object in
+hand, you can still construct the backend directly:
 
 ```python
 from strands_robots_sim.isaac import IsaacSimulation, IsaacConfig

@@ -27,21 +27,22 @@ MuJoCo backend implements, so a Strands Agent that drives a MuJoCo world
 today switches to Isaac Sim by swapping the backend it constructs.
 
 ```python
-from strands_robots_sim.isaac import IsaacSimulation, IsaacConfig
+from strands_robots.simulation import create_simulation
 
-sim = IsaacSimulation(IsaacConfig(render_mode="rtx_realtime", headless=True))
+sim = create_simulation("isaac", render_mode="rtx_realtime", headless=True)
 sim.create_world()
 sim.add_robot("so100")                          # procedural; no asset files needed
 sim.step(100)
 frame = sim.render(camera_name="default")
 ```
 
-> **Note:** `IsaacSimulation` is also registered as a `strands_robots.backends`
-> entry point, but no released `strands-robots` (`>=0.3.8,<0.4`) walks that
-> group from `create_simulation` yet, so `create_simulation("isaac")` raises
-> `ValueError: Unknown simulation backend: 'isaac'`. Construct `IsaacSimulation`
-> directly until the upstream entry-point walker ships
-> ([`strands-labs/robots#131`](https://github.com/strands-labs/robots/issues/131)).
+> **Note:** `create_simulation("isaac", ...)` resolves to this repo's
+> `IsaacSimulation` via the `strands_robots.backends` entry point —
+> `strands-robots>=0.4.1` walks that group from its `create_simulation`
+> factory ([`strands-labs/robots#131`](https://github.com/strands-labs/robots/issues/131)),
+> the same UX as `create_simulation("mujoco")`. The kwargs flow into
+> `IsaacConfig`. You can still construct `IsaacSimulation(IsaacConfig(...))`
+> directly when you want the config object in hand.
 
 > **📚 Documentation:** <https://strands-labs.github.io/robots-sim/>
 >
@@ -75,7 +76,7 @@ agent contract is identical.
 ```mermaid
 graph LR
     A[Strands Agent] --> B[Simulation<br/>AgentTool]
-    B --> C[create_simulation 'isaac'<br/>once upstream walks entry points]
+    B --> C[create_simulation 'isaac'<br/>walks entry points]
     C --> D[Entry-point lookup<br/>strands_robots.backends]
     D --> E[IsaacSimulation<br/>this repo]
     E --> F[Isaac Sim Kit<br/>SimulationApp]
@@ -91,10 +92,12 @@ graph LR
 ```
 
 `strands-robots-sim` registers `IsaacSimulation` as a
-`strands_robots.backends` entry point. The intent is that
-`create_simulation("isaac")` walks the entry-point group, imports the target
-string, and instantiates it — but no released `strands-robots` (`>=0.3.8,<0.4`)
-ships that walker yet, so today you construct `IsaacSimulation` directly (see
+`strands_robots.backends` entry point. `create_simulation("isaac")` walks the
+entry-point group, imports the target string, and instantiates it —
+`strands-robots>=0.4.1` ships that walker
+([`strands-labs/robots#131`](https://github.com/strands-labs/robots/issues/131)),
+so `create_simulation("isaac", ...)` resolves to this repo's `IsaacSimulation`
+with nothing more than `pip install strands-robots-sim` (see
 [Quick start](#quick-start)). The full plugin contract is documented in
 [Architecture](https://strands-labs.github.io/robots-sim/architecture/).
 
@@ -126,9 +129,9 @@ Full install matrix in
 ### Single-env RTX render
 
 ```python
-from strands_robots_sim.isaac import IsaacSimulation, IsaacConfig
+from strands_robots.simulation import create_simulation
 
-sim = IsaacSimulation(IsaacConfig(render_mode="rtx_pathtracing", headless=True))
+sim = create_simulation("isaac", render_mode="rtx_pathtracing", headless=True)
 sim.create_world()
 sim.add_robot("so100")                          # procedural builder
 sim.add_object(name="cube", shape="cuboid",
@@ -142,8 +145,8 @@ sim.destroy()
 ### IsaacLab-style fleet (preview)
 
 ```python
-sim = IsaacSimulation(IsaacConfig(num_envs=1024, headless=True,
-                                  render_mode="headless"))
+sim = create_simulation("isaac", num_envs=1024, headless=True,
+                        render_mode="headless")
 sim.create_world()
 sim.add_robot(name="panda", usd_path="/path/to/franka.usda")
 # ... RL training loop ...

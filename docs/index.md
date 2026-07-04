@@ -22,9 +22,9 @@ backend it constructs:
 === "Isaac Sim (this repo, RTX, USD-native)"
 
     ```python
-    from strands_robots_sim.isaac import IsaacSimulation, IsaacConfig
+    from strands_robots.simulation import create_simulation
 
-    sim = IsaacSimulation(IsaacConfig(render_mode="rtx_pathtracing", headless=True))
+    sim = create_simulation("isaac", render_mode="rtx_pathtracing", headless=True)
     sim.create_world()
     sim.add_robot("so100")                         # procedural; no asset files needed
     sim.step(100)
@@ -36,18 +36,12 @@ are all identical across backends — once the `IsaacSimulation` instance
 exists, every downstream call is `SimEngine`-shaped regardless of how it was
 constructed.
 
-!!! note "Why the direct constructor instead of `create_simulation('isaac')`?"
-
-    `strands-robots-sim` registers `IsaacSimulation` as a
-    `strands_robots.backends` entry point (see [How it works](#how-it-works)),
-    but the released `strands-robots` floor this package pins
-    (`>=0.3.8,<0.4`) does **not** yet walk that entry-point group from
-    `create_simulation` — so `create_simulation("isaac")` raises
-    `ValueError: Unknown simulation backend: 'isaac'`. Until an upstream
-    release ships the entry-point walker (tracked in
-    [`strands-labs/robots#131`](https://github.com/strands-labs/robots/issues/131)),
-    construct `IsaacSimulation` directly as shown above. The kwargs are the
-    same either way: they flow into `IsaacConfig`.
+`create_simulation("isaac", ...)` resolves to this repo's `IsaacSimulation`
+via the `strands_robots.backends` entry point (see [How it works](#how-it-works)),
+exactly like `create_simulation("mujoco")` resolves to the built-in MuJoCo
+backend. The kwargs flow straight into `IsaacConfig`. You can still construct
+`IsaacSimulation(IsaacConfig(...))` directly if you want the config object in
+hand, but the factory is the recommended path.
 
 ## When you want this repo
 
@@ -67,14 +61,13 @@ contract is the same.
 ## How it works
 
 `strands-robots-sim` registers `IsaacSimulation` as a
-`strands_robots.backends` entry point. The intent is that
-`create_simulation("isaac")` resolves to it without `strands-robots` ever
-needing a hard dependency on Isaac Sim:
+`strands_robots.backends` entry point. `create_simulation("isaac")` resolves
+to it without `strands-robots` ever needing a hard dependency on Isaac Sim:
 
 ```mermaid
 graph LR
     A[Strands Agent] --> B[Simulation<br/>AgentTool]
-    B --> C[create_simulation 'isaac'<br/>once upstream walks entry points]
+    B --> C[create_simulation 'isaac'<br/>walks entry points]
     C --> D[Entry-point lookup<br/>strands_robots.backends]
     D --> E[IsaacSimulation<br/>this repo]
     E --> F[Isaac Sim Kit<br/>SimulationApp]
@@ -89,17 +82,15 @@ graph LR
     class E,F,G plugin
 ```
 
-!!! warning "Entry-point discovery is not live yet"
+!!! note "Entry-point discovery"
 
     The entry point above is declared and discoverable
     (`importlib.metadata.entry_points(group="strands_robots.backends")`
-    lists `isaac`), but no released `strands-robots` walks that group from
-    its `create_simulation` factory yet — the pinned floor
-    (`strands-robots>=0.3.8,<0.4`) only knows the built-in MuJoCo aliases.
-    So today you construct `IsaacSimulation` directly (see
-    [Quickstart](#quickstart)); the entry-point path lights up once the
-    upstream walker ships
-    ([`strands-labs/robots#131`](https://github.com/strands-labs/robots/issues/131)).
+    lists `isaac`). `strands-robots>=0.4.1` walks that group from its
+    `create_simulation` factory (shipped via
+    [`strands-labs/robots#131`](https://github.com/strands-labs/robots/issues/131)),
+    so `create_simulation("isaac")` resolves to this repo's `IsaacSimulation`
+    with nothing more than `pip install strands-robots-sim`.
 
 The same plugin shape is what makes the `mujoco` backend in `strands-robots`
 and `isaac` here interchangeable: both are `SimEngine` subclasses; the

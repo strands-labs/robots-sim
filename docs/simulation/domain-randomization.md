@@ -61,9 +61,9 @@ descriptions of what to perturb each frame, expressed as keyword args to
 `replicate(...)`:
 
 ```python
-from strands_robots_sim.isaac import IsaacSimulation, IsaacConfig
+from strands_robots.simulation import create_simulation
 
-sim = IsaacSimulation(IsaacConfig(render_mode="rtx_pathtracing", headless=True))
+sim = create_simulation("isaac", render_mode="rtx_pathtracing", headless=True)
 sim.create_world()
 sim.add_robot(name="panda", usd_path="/path/to/franka.usda")
 sim.add_object(name="cube", shape="cuboid",

@@ -1,33 +1,29 @@
-"""Regression tests for the documented Isaac quickstart path (#97).
+"""Regression tests for the documented Isaac quickstart path (#97, #139).
 
 `docs/index.md`, `README.md`, `docs/getting-started/quickstart.md`, and
-`docs/simulation/overview.md` all previously opened with::
+`docs/simulation/overview.md` all open with the factory path::
 
-    import strands_robots_sim
     from strands_robots.simulation import create_simulation
     sim = create_simulation("isaac", render_mode="rtx_realtime", headless=True)
 
-That snippet is **broken** against every released ``strands-robots`` this
-package can install: the pinned floor (``strands-robots>=0.3.8,<0.4``) does
-not walk the ``strands_robots.backends`` entry-point group from its
-``create_simulation`` factory, so the call raises
-``ValueError: Unknown simulation backend: 'isaac'`` (issue #97). The docs
-now use the supported direct constructor::
+That path now works: ``strands-robots>=0.4.1`` (the pinned floor, shipped via
+robots#131) walks the ``strands_robots.backends`` entry-point group from its
+``create_simulation`` factory, so ``create_simulation("isaac", ...)`` resolves
+to this package's ``IsaacSimulation`` — the same UX as
+``create_simulation("mujoco")``. The direct constructor stays supported for
+callers that want the ``IsaacConfig`` object in hand::
 
     from strands_robots_sim.isaac import IsaacSimulation, IsaacConfig
     sim = IsaacSimulation(IsaacConfig(render_mode="rtx_realtime", headless=True))
 
 These tests pin both halves of that contract so neither can silently drift:
 
-1. ``TestDocumentedDirectConstructor`` — the path the docs actually show
-   must keep working on a CPU-only box (no ``omni.*`` import at construct
-   time), accepting both the ``IsaacConfig`` and the kwargs forms.
-2. ``TestCreateSimulationIsaacDiscovery`` — encodes the *current* upstream
-   reality. While the pinned ``strands-robots`` lacks the entry-point
-   walker, ``create_simulation("isaac")`` must raise the documented
-   ``ValueError``; the moment a future upstream gains the walker, the same
-   call must resolve to ``IsaacSimulation`` (and this test flips to assert
-   that). Either way the docs and code stay in lockstep.
+1. ``TestDocumentedDirectConstructor`` — the direct-constructor path must keep
+   working on a CPU-only box (no ``omni.*`` import at construct time),
+   accepting both the ``IsaacConfig`` and the kwargs forms.
+2. ``TestCreateSimulationIsaacDiscovery`` — the documented factory path:
+   ``create_simulation("isaac", ...)`` must resolve to ``IsaacSimulation``
+   against the pinned ``strands-robots>=0.4.1`` floor.
 
 Run with::
 
@@ -62,7 +58,7 @@ class TestDocumentedDirectConstructor:
     def test_construct_from_kwargs(self):
         """The kwargs form ``IsaacSimulation(render_mode=..., headless=...)`` constructs.
 
-        These are the same kwargs the docs note will one day flow through
+        These are the same kwargs that flow through
         ``create_simulation("isaac", ...)`` into ``IsaacConfig``.
         """
         from strands_robots_sim.isaac import IsaacSimulation
@@ -115,55 +111,76 @@ def _isaac_via_factory():
         return None, exc
 
 
-class TestCreateSimulationIsaacDiscovery:
-    """Pin the ``create_simulation('isaac')`` contract against the pinned upstream (#97).
+def _factory_walks_entry_points() -> bool:
+    """True if the installed ``strands-robots`` walks ``strands_robots.backends``.
 
-    The pinned ``strands-robots>=0.3.8,<0.4`` has no entry-point walker, so
-    the factory cannot resolve ``"isaac"``. This test asserts the documented
-    failure mode today and auto-flips to assert success once an upstream
-    release gains the walker (so the docs' "one day this collapses to
-    ``create_simulation('isaac')``" promise is itself guarded).
+    The entry-point walker landed in ``strands-robots>=0.4.1`` (robots#131);
+    the pinned floor requires it. But the lint/test hatch env is
+    ``skip-install=true`` and CI/dev boxes may still have an older
+    ``strands-robots`` in the ambient Python, so this probe lets the positive
+    assertion skip cleanly rather than fail on a stale, below-floor install.
+    """
+    try:
+        from strands_robots.simulation import list_backends
+    except Exception:  # pragma: no cover - strands-robots absent
+        return False
+    try:
+        # The walker surfaces plugin backends (e.g. "isaac") in list_backends();
+        # a pre-0.4.1 factory only lists the built-in mujoco aliases.
+        return "isaac" in set(list_backends())
+    except Exception:  # pragma: no cover - defensive
+        return False
+
+
+class TestCreateSimulationIsaacDiscovery:
+    """Pin the documented ``create_simulation('isaac')`` contract (#97, #139).
+
+    ``strands-robots>=0.4.1`` (the pinned floor, robots#131) walks the
+    ``strands_robots.backends`` entry-point group, so ``create_simulation``
+    resolves ``"isaac"`` to this package's ``IsaacSimulation``. This test
+    asserts that documented behavior. It skips cleanly when ``strands-robots``
+    is absent or below the floor (e.g. the ``skip-install=true`` hatch env or
+    a stale ambient install) rather than failing spuriously.
     """
 
-    def test_factory_either_resolves_isaac_or_raises_the_documented_error(self):
+    def test_create_simulation_isaac_resolves_to_isaac_simulation(self):
         # ``strands-robots`` provides ``create_simulation`` but is not
         # installed in the lint/test hatch env (skip-install=true). Skip
         # cleanly there; runs anywhere the runtime dep is present.
         pytest.importorskip("strands_robots.simulation")
 
-        import strands_robots_sim  # noqa: F401 - parity with the (former) doc snippet
+        if not _factory_walks_entry_points():
+            pytest.skip(
+                "Installed strands-robots is below the >=0.4.1 floor that walks "
+                "strands_robots.backends (robots#131). Upgrade to validate the "
+                "factory path: pip install 'strands-robots>=0.4.1'."
+            )
+
+        import strands_robots_sim  # noqa: F401 - parity with the doc snippet
 
         sim, err = _isaac_via_factory()
 
-        if err is None:
-            # Upstream gained the entry-point walker: the docs' forward-looking
-            # promise is now real. Guard that "isaac" resolves to *our* class.
-            from strands_robots_sim.isaac import IsaacSimulation
-
-            assert isinstance(sim, IsaacSimulation), (
-                f"create_simulation('isaac') resolved to {type(sim)!r}; expected IsaacSimulation. "
-                "An upstream strands-robots now walks strands_robots.backends but routed "
-                "'isaac' to the wrong class."
-            )
-            return
-
-        # No walker yet: the call must fail with the exact documented error
-        # so the quickstart docs (which use the direct constructor) stay honest.
-        assert isinstance(err, ValueError), (
-            f"create_simulation('isaac') raised {type(err).__name__}: {err!r}; expected ValueError. "
-            "If upstream now resolves 'isaac', this test auto-detects it via the err-is-None branch."
-        )
-        assert "isaac" in str(err).lower(), (
-            f"create_simulation('isaac') raised an unexpected ValueError: {err!r}. "
-            "Expected the 'Unknown simulation backend: isaac' message."
+        assert err is None, (
+            f"create_simulation('isaac') raised {type(err).__name__ if err else None}: {err!r}; "
+            "expected it to resolve to IsaacSimulation against strands-robots>=0.4.1."
         )
 
-    def test_entry_point_is_registered_even_though_factory_cannot_use_it_yet(self):
-        """The ``isaac`` entry point is declared/discoverable regardless of the walker.
+        from strands_robots_sim.isaac import IsaacSimulation
 
-        This is the forward-compatible plumbing: once upstream walks the
-        group, no change to this package is required (see docs/architecture.md).
-        Skips cleanly if the package isn't pip-installed in this env.
+        assert isinstance(sim, IsaacSimulation), (
+            f"create_simulation('isaac') resolved to {type(sim)!r}; expected IsaacSimulation. "
+            "strands-robots walked strands_robots.backends but routed 'isaac' to the wrong class."
+        )
+        # The documented kwargs must reach IsaacConfig.
+        assert sim._config.render_mode == "rtx_realtime"
+        assert sim._config.headless is True
+
+    def test_entry_point_is_registered(self):
+        """The ``isaac`` entry point is declared/discoverable.
+
+        This is the plumbing the upstream walker consumes (see
+        docs/architecture.md). Skips cleanly if the package isn't pip-installed
+        in this env.
         """
         import importlib.metadata
 

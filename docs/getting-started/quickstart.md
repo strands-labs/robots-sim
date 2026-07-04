@@ -10,12 +10,13 @@ Bring up an Isaac Sim world, drop a robot in, render an RTX frame.
 ## Hello, RTX
 
 ```python
-from strands_robots_sim.isaac import IsaacSimulation, IsaacConfig
+from strands_robots.simulation import create_simulation
 
-sim = IsaacSimulation(IsaacConfig(
+sim = create_simulation(
+    "isaac",
     render_mode="rtx_realtime",                # or "rtx_pathtracing" for path-traced
     headless=True,
-))
+)
 sim.create_world()
 sim.add_robot("so100")                         # procedural builder, no asset files
 sim.add_object(name="cube", shape="cuboid",
@@ -28,22 +29,21 @@ frame = sim.render(camera_name="front")        # {"rgb": (H, W, 3) uint8, "depth
 sim.destroy()
 ```
 
-!!! note "`create_simulation('isaac')` is not wired up yet"
+!!! note "`create_simulation('isaac')` resolves via the entry-point group"
 
     `IsaacSimulation` is registered as a `strands_robots.backends` entry
-    point, but the released `strands-robots` floor (`>=0.3.8,<0.4`) does not
-    walk that group from `create_simulation`, so
-    `create_simulation("isaac")` raises
-    `ValueError: Unknown simulation backend: 'isaac'`. Construct
-    `IsaacSimulation(IsaacConfig(...))` directly until the upstream walker
-    ships ([`strands-labs/robots#131`](https://github.com/strands-labs/robots/issues/131));
-    the kwargs are identical, forwarded into `IsaacConfig`.
+    point. `strands-robots>=0.4.1` walks that group from `create_simulation`
+    ([`strands-labs/robots#131`](https://github.com/strands-labs/robots/issues/131)),
+    so `create_simulation("isaac", ...)` resolves to this repo's
+    `IsaacSimulation` — the same UX as `create_simulation("mujoco")`. The
+    kwargs are forwarded into `IsaacConfig`. If you want the config object in
+    hand you can still construct `IsaacSimulation(IsaacConfig(...))` directly.
 
 What happened:
 
-1. `IsaacSimulation(IsaacConfig(...))` constructs the backend directly — the
-   supported path until `create_simulation("isaac")` resolves through the
-   `strands_robots.backends` entry point.
+1. `create_simulation("isaac", ...)` resolves the backend through the
+   `strands_robots.backends` entry point and forwards the kwargs into
+   `IsaacConfig` — the recommended path.
 2. `create_world()` spins up a `SimulationApp`, opens a USD stage, and
    adds a ground plane.
 3. `add_robot("so100")` runs the procedural SO-100 builder — no asset
@@ -144,9 +144,9 @@ that closes over the `sim` instance — the same pattern
 
 ```python
 from strands import Agent, tool
-from strands_robots_sim.isaac import IsaacSimulation, IsaacConfig
+from strands_robots.simulation import create_simulation
 
-sim = IsaacSimulation(IsaacConfig(render_mode="rtx_realtime", headless=True))
+sim = create_simulation("isaac", render_mode="rtx_realtime", headless=True)
 sim.create_world()
 sim.add_robot("so100")
 

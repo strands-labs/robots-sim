@@ -226,7 +226,9 @@ class IsaacGsApp:
 
     def boot(self) -> None:
         """Create SimulationApp + build the scene. **Main thread only.**"""
-        from strands_robots_sim.isaac import IsaacConfig, IsaacSimulation
+        from strands_robots.simulation import create_simulation
+
+        from strands_robots_sim.isaac import IsaacSimulation
 
         available, reason = IsaacSimulation.is_available()
         if not available:
@@ -236,7 +238,7 @@ class IsaacGsApp:
         from examples.isaac_gs.scene import add_preset_cameras, build_default_scene
 
         logger.info("Booting IsaacSimulation on the main thread (~200 s)...")
-        sim = IsaacSimulation(IsaacConfig(headless=True, num_envs=1, render_mode="rtx_realtime"))
+        sim = create_simulation("isaac", headless=True, num_envs=1, render_mode="rtx_realtime")
         # Robot-aware: build_default_scene creates the "front" camera, so align
         # it with the chosen presets' "front" pose; add_preset_cameras adds the
         # rest. Defaults (no robot_usd / presets) = the bundled Franka.

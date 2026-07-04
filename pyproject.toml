@@ -31,15 +31,17 @@ classifiers = [
 # strands-robots-sim is a *plugin* of strands-robots: the SimEngine ABC,
 # factory, model registry, LIBERO/MuJoCo backend, GR00T policy client, and
 # LeRobot recording adapter all live upstream. The only runtime dep this
-# package ships with is strands-robots itself (>=0.4.0 — the version that
-# walks `[project.entry-points."strands_robots.backends"]` to discover
-# pluggable backends like the Isaac one registered below).
+# package ships with is strands-robots itself (>=0.4.1 — the first release
+# whose factory walks `[project.entry-points."strands_robots.backends"]` to
+# discover pluggable backends like the Isaac one registered below; 0.4.0
+# registered the built-in backends only and did NOT walk the group, so
+# `create_simulation("isaac")` raised on that release — see robots#131).
 #
 # GPU-only backend dependencies (Isaac Sim) live behind the `[isaac]`
 # extra; pip-install with no extras keeps the runtime tiny and lets
 # users layer the GPU bits on per-host.
 dependencies = [
-    "strands-robots>=0.4.0",
+    "strands-robots>=0.4.1",
 ]
 
 [project.optional-dependencies]
@@ -81,7 +83,7 @@ dependencies = [
 # Isaac Lab is required only for the fleet-RL path, which installs from
 # source. See #107.
 #
-# Why Isaac Sim **6.0** specifically (not 5.0/5.1)? `strands-robots>=0.4.0`
+# Why Isaac Sim **6.0** specifically (not 5.0/5.1)? `strands-robots>=0.4.1`
 # requires Python >=3.12, and Isaac Sim 6.0 is the only release whose
 # embedded interpreter targets 3.12 (the 5.x line is 3.11) (#98). Keep
 # that major.minor in lockstep with ISAAC_SIM_DOCKER_IMAGE in
@@ -113,7 +115,7 @@ dev = [
 
 # Backend entry points -- the heart of this PR.
 #
-# strands-robots>=0.4.0 walks `entry_points(group="strands_robots.backends")`
+# strands-robots>=0.4.1 walks `entry_points(group="strands_robots.backends")`
 # from its factory and registers every (name -> "module:Class") pair it
 # finds. The three entries below mean:
 #
@@ -142,13 +144,12 @@ packages = ["strands_robots_sim"]
 
 [tool.hatch.envs.default]
 # `skip-install = true` keeps hatch from re-installing the project (and
-# its `strands-robots>=0.4.0` dep) into a fresh venv on every `hatch run`
-# invocation -- the >=0.4.0 pin can't resolve from PyPI until upstream U2
-# (entry-point walker) ships and the strands-labs/robots repo cuts a
-# matching release. Until then, contributors should `pip install -e .`
-# from a system Python that already has `strands-robots` installed from
-# a local checkout. The deps below are purely the lint + test toolchain
-# we want hatch to manage in its venv.
+# its `strands-robots>=0.4.1` dep) into a fresh venv on every `hatch run`
+# invocation. The `>=0.4.1` floor resolves from PyPI now that upstream's
+# entry-point walker (robots#131) has shipped in the strands-robots 0.4.1
+# release. Contributors can `pip install -e .` from a system Python; the
+# deps below are purely the lint + test toolchain we want hatch to manage
+# in its venv.
 skip-install = true
 dependencies = [
     "black",

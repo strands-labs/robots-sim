@@ -169,9 +169,10 @@ from typing import Any
 
 from strands import Agent, tool
 from strands_robots.benchmarks.libero import load_libero_suite
+from strands_robots.simulation import create_simulation
 from strands_robots.tools import gr00t_inference
 
-from strands_robots_sim.isaac import IsaacConfig, IsaacSimulation
+from strands_robots_sim.isaac import IsaacSimulation
 
 # Module-level handle for the @tool-wrapped function below.
 # The wrapper has to access ``_sim`` from outer scope because
@@ -671,12 +672,15 @@ def main() -> None:
 
     server_handle = _bring_up_gr00t_server(args, suite)
 
-    # render_mode="rtx_realtime" makes render() take the RTX frame path
-    # instead of returning zero-filled (blank) frames in the default
-    # render_mode="headless" -- the latter produced all-black rollout
-    # MP4s. headless=True only suppresses the Kit viewport, not the
-    # render pipeline. (STRANDS_ISAAC_RTX_PATHTRACING=1 -> photoreal.)
-    _sim = IsaacSimulation(IsaacConfig(headless=True, num_envs=1, render_mode="rtx_realtime"))
+    # Construct via the strands-robots factory: strands-robots>=0.4.1
+    # walks the `strands_robots.backends` entry-point group, so
+    # create_simulation("isaac", ...) resolves to this package's
+    # IsaacSimulation. render_mode="rtx_realtime" makes render() take the
+    # RTX frame path instead of returning zero-filled (blank) frames in
+    # the default render_mode="headless" -- the latter produced all-black
+    # rollout MP4s. headless=True only suppresses the Kit viewport, not
+    # the render pipeline. (STRANDS_ISAAC_RTX_PATHTRACING=1 -> photoreal.)
+    _sim = create_simulation("isaac", headless=True, num_envs=1, render_mode="rtx_realtime")
     try:
         result = _sim.create_world()
         if result.get("status") != "success":
