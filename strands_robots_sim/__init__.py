@@ -1,5 +1,11 @@
 """strands-robots-sim — heavy NVIDIA simulation backends for strands-robots.
 
+.. deprecated::
+   This package is deprecated and will be archived (robots-sim#167). The
+   Isaac Sim backend now ships as an in-tree builtin of ``strands-robots``;
+   install it with ``pip install strands-robots[isaac]``. Importing this
+   package emits a :class:`DeprecationWarning`.
+
 As of 0.2.0 this package is a re-scoped plugin host. The legacy ``SimEnv``,
 ``SteppedSimEnv``, Libero-direct environment layer, GR00T policy client, and
 ``gr00t_inference`` AgentTool have all been removed — that lightweight
@@ -16,6 +22,7 @@ https://github.com/strands-labs/robots-sim/issues/8.
 See ``examples/MIGRATION.md`` for the old-API → new-API mapping.
 """
 
+import warnings
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _pkg_version
 
@@ -27,6 +34,29 @@ except PackageNotFoundError:
     __version__ = "0.0.0+unknown"
 
 __all__ = ["__version__"]
+
+# ---------------------------------------------------------------------------
+# Deprecation notice (robots-sim#167 / #168)
+#
+# The Isaac Sim backend now lives in ``strands-labs/robots`` as an in-tree
+# builtin. This package is being deprecated and will be archived; emit a
+# ``DeprecationWarning`` on import so existing users are pointed at the new
+# install path before the final release + PyPI deprecation land.
+#
+# ``stacklevel=2`` attributes the warning to the caller's ``import`` line
+# rather than to this module, so ``python -W all`` / pytest ``-W`` output
+# points at the user's code. The message names the concrete migration
+# command from the issue so the fix is copy-pasteable.
+# ---------------------------------------------------------------------------
+_DEPRECATION_MESSAGE = (
+    "strands-robots-sim is deprecated and will be archived. The Isaac Sim "
+    "backend now ships as an in-tree builtin of strands-robots; install it "
+    "with `pip install strands-robots[isaac]`. "
+    "See https://github.com/strands-labs/robots-sim/issues/167 for the "
+    "deprecation plan and examples/MIGRATION.md for the API mapping."
+)
+
+warnings.warn(_DEPRECATION_MESSAGE, DeprecationWarning, stacklevel=2)
 
 _LEGACY_REMOVED = {
     "SimEnv": (
