@@ -20,6 +20,39 @@
   </p>
 </div>
 
+> [!WARNING]
+> ## ⚠️ Deprecated — the Isaac Sim backend has moved to [`strands-labs/robots`](https://github.com/strands-labs/robots)
+>
+> **`strands-robots-sim` is deprecated and this repository will be archived.**
+> The Isaac Sim backend now lives in the [`strands-labs/robots`](https://github.com/strands-labs/robots)
+> monorepo as an in-tree builtin backend, so there is no longer a separate
+> plugin package to install.
+>
+> **Migrate now:**
+>
+> ```bash
+> # Old (deprecated):
+> pip uninstall strands-robots-sim
+>
+> # New — Isaac extra on the main package:
+> pip install 'strands-robots[isaac]'
+> ```
+>
+> Your application code does **not** change — `create_simulation("isaac", ...)`
+> continues to resolve the Isaac backend, now from the builtin registry in
+> `strands-robots` instead of this plugin package:
+>
+> ```python
+> from strands_robots.simulation import create_simulation
+>
+> sim = create_simulation("isaac", render_mode="rtx_realtime", headless=True)
+> ```
+>
+> Tracking: the absorb epic [`strands-labs/robots#1144`](https://github.com/strands-labs/robots/issues/1144)
+> and the deprecation epic [`#167`](https://github.com/strands-labs/robots-sim/issues/167).
+> No further releases of `strands-robots-sim` are planned beyond a final
+> deprecation release.
+
 `strands-robots-sim` is the GPU-accelerated Isaac Sim companion to
 [`strands-robots`](https://github.com/strands-labs/robots). It ships an
 **`IsaacSimulation`** that plugs into the same `SimEngine` ABC the upstream
